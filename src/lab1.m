@@ -5,8 +5,8 @@
 % ------------
 % Welcome again! This MATLAB script is your starting point for Lab
 % 1 of RBE3001. The sample code below demonstrates how to establish
-% communication between this script and the Nucleo firmware, send
-% setpoint commands and receive sensor data.
+% communicrm,	namely	it	will	make	it	swing	back	and	forth	two	times.ation between this script and the Nucleo firmware, send
+%+ setpoint commands and receive sensor data.
 % 
 % IMPORTANT - understanding the code below requires being familiar
 % with the Nucleo firmware. Read that code first.
@@ -31,8 +31,9 @@ myHIDSimplePacketComs.connect();
 % Create a PacketProcessor object to send data to the nucleo firmware
 pp = PacketProcessor(myHIDSimplePacketComs); 
 try
-  SERV_ID = 37;            % we will be talking to server ID 37 on
+  SERV_ID = 21;            % we will be talking to server ID 37 on
                            % the Nucleo
+myHIDSimplePacketComs.setVid(vid);
 
   DEBUG   = true;          % enables/disables debug prints
 
@@ -56,20 +57,22 @@ try
       packet(1) = k;
 
 
-      % Send packet to the server and get the response
-      returnPacket = pp.command(SERV_ID, packet);
-      
+       %Send packet to the server and get the response
+            returnPacket = pp.command(SERV_ID, packet);
 
       if DEBUG
           disp('Sent Packet:');
           disp(packet);
           disp('Received Packet:');
           disp(returnPacket);
+          
       end
       toc
       pause(1) %timeit(returnPacket) !FIXME why is this needed?
       
   end
+   %csvwrite(['lab1Q7_' datestr(now,'mmddyyHHMMSS')  '.csv'],returnPacket);
+
 catch exception
     getReport(exception)
     disp('Exited on error, clean shutdown');
