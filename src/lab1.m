@@ -46,11 +46,11 @@ myHIDSimplePacketComs.setVid(vid);
   % executed on joint 1 of the arm and iteratively sends the list of
   % setpoints to the Nucleo firmware. 
   viaPts = [0, -400, 400, -400, 400, 0];
-
-  
+  test = [1,2,3,4];
+  positions = zeros(3,3,3);
 
   % Iterate through a sine wave for joint values
-  for k = viaPts
+  for k = test %k = viaPts
       tic
       %incremtal = (single(k) / sinWaveInc);
 
@@ -59,19 +59,28 @@ myHIDSimplePacketComs.setVid(vid);
 
        %Send packet to the server and get the response
             returnPacket = pp.command(SERV_ID, packet);
-
+            returnPacketMatrix = [returnPacket(1,1) returnPacket(2,1) returnPacket(3,1);
+                                  returnPacket(4,1) returnPacket(5,1) returnPacket(6,1);
+                                  returnPacket(7,1) returnPacket(8,1) returnPacket(9,1)];
       if DEBUG
-          disp('Sent Packet:');
-          disp(packet);
+          %disp('Sent Packet:');
+          %disp(packet);
           disp('Received Packet:');
-          disp(returnPacket);
+          disp(returnPacketMatrix);
           
       end
+      
+      if k > 1 
+          positions(:,:,k-1) = returnPacketMatrix;
+      end
       toc
-      pause(1) %timeit(returnPacket) !FIXME why is this needed?
+      pause(5) %timeit(returnPacket) !FIXME why is this needed?
+      
       
   end
-   %csvwrite(['lab1Q7_' datestr(now,'mmddyyHHMMSS')  '.csv'],returnPacket);
+  disp('Final')
+  disp(positions);
+   csvwrite(['lab1Q7_' datestr(now,'mmddyyHHMMSS')  '.csv'],positions);
 
 catch exception
     getReport(exception)
