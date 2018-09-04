@@ -11,6 +11,7 @@
 % IMPORTANT - understanding the code below requires being familiar
 % with the Nucleo firmware. Read that code first.
 clear java;
+clear;
 %clear import;
 clear classes;
 vid = hex2dec('3742');
@@ -35,7 +36,6 @@ try
                            % the Nucleo
   STAT_SERV_ID = 21;
   
-  CALIB_SERV_ID = 25;
 myHIDSimplePacketComs.setVid(vid);
 
   DEBUG   = true;          % enables/disables debug prints
@@ -48,19 +48,21 @@ myHIDSimplePacketComs.setVid(vid);
   % The following code generates a sinusoidal trajectory to be
   % executed on joint 1 of the arm and iteratively sends the list of
   % setpoints to the Nucleo firmware. 
-  viaPts = [0, -400, 400, -400, 400, 0];
-  test = [1,2,3,4];
   positions = zeros(3,3,3);
-  average = zeros(3,3);
-  home = zeros(1,3);
-
+  angles = zeros(10,3);
+  currentPos = zeros(1,3);
+  currentAngle = zeros(1,3);
+  anglesLog = zeros(10,4);
+  timestamp = zeros(10,1);
+  timeAngles = zeros(10,4);
+  currTimeAngles = zeros(1,4);
+  
+  k=10
+  
   % Iterate through a sine wave for joint values
-  for k = test %k = viaPts
+  while true
       tic
       %incremtal = (single(k) / sinWaveInc);
-
-      packet(1) = k;
-
 
        %Send packet to the server and get the response
             returnPacket = pp.command(STAT_SERV_ID, packet);
@@ -72,39 +74,42 @@ myHIDSimplePacketComs.setVid(vid);
           %disp(packet);
           disp('Received Packet:');
           disp(returnPacketMatrix);
+                     
           
       end
       
-            
-      if k > 1 
-          positions(:,:,k-1) = returnPacketMatrix;
-      end
+      currentPos = transpose(returnPacketMatrix(:,1));
+      %transfer encoder ticks into angles
+      currentAngle = currentPos * 90 /1000;
       toc
       pause(1) %timeit(returnPacket) !FIXME why is this needed?
+      angles = circshift(angles,-1,1);
+      angles(10,:) = currentAngle;
+      timestamp = circshift(timestamp,-1,1);
+      time = str2double(datestr(now,'MMSS'));
+      disp(time)
+      timestamp(10,1)= time;
+      disp(timestamp)
+      
+      currTimeAngles(1,1:3) = currentAngle;
+      currTimeAngles(1,4)= time;
+      
+      dlmwrite('lab1Q12.csv' ,currTimeAngles,'delimiter',',','-append');
+      
+      plot(angles)
+      timeAngles (:,1:3) = angles;
+      timeAngles (:,4) = timestamp;
+      
+      pause(.5);
+     end
       
       
-  end
-  average = ((positions(:,:,1) + positions(:,:,2) + positions(:,:,3))/3);
-  home = average(:,1);
-  pp.shutdown()
-  pause(.2)
+  
+
   disp('Final')
   disp(positions);
    %csvwrite(['lab1Q7_' datestr(now,'mmddyyHHMMSS')  '.csv'],positions);
-  disp('Average')
-  disp(average)
-  disp('Home')
-  disp(home)
-  pp.command(CALIB_SERV_ID,home);
-
-  pp.shutdown()
-  pause(.2)
-  newHome = pp.command(STAT_SERV_ID, packet);
-  newHomeMatrix = [newHome(1,1) newHome(2,1) newHome(3,1);
-                   newHome(4,1) newHome(5,1) newHome(6,1);
-                   newHome(7,1) newHome(8,1) newHome(9,1)];
-  disp('New Home')
-  disp(newHomeMatrix)
+   csvwrite(['lab1Q12_' datestr(now,'mmddyyHHMMSS')  '.csv'],anglesLog);
 catch exception
     getReport(exception)
     disp('Exited on error, clean shutdown');
