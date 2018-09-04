@@ -31,10 +31,13 @@ myHIDSimplePacketComs.setVid(vid);
 myHIDSimplePacketComs.connect();
 % Create a PacketProcessor object to send data to the nucleo firmware
 pp = PacketProcessor(myHIDSimplePacketComs); 
+%% 
+% This file plots the position of the arm and saves the positions in a .csv
 try
-  SERV_ID = 21;            % we will be talking to server ID 37 on
+  SERV_ID = 37;            % we will be talking to server ID 37 (pid server) on
                            % the Nucleo
-  STAT_SERV_ID = 21;
+                           
+  STAT_SERV_ID = 21;       % the server ID for the status server
   
 myHIDSimplePacketComs.setVid(vid);
 
@@ -48,24 +51,35 @@ myHIDSimplePacketComs.setVid(vid);
   % The following code generates a sinusoidal trajectory to be
   % executed on joint 1 of the arm and iteratively sends the list of
   % setpoints to the Nucleo firmware. 
-  positions = zeros(3,3,3);
-  angles = zeros(10,3);
-  currentPos = zeros(1,3);
-  currentAngle = zeros(1,3);
-  anglesLog = zeros(10,4);
-  timestamp = zeros(10,1);
-  timeAngles = zeros(10,4);
-  currTimeAngles = zeros(1,4);
+  positions = zeros(3,3,3); % 3D matrix to store 3 status messages from the arm
+  
+  angles = zeros(10,3);     % matrix to store 10 sets of 3 angles calculated
+                            % from the received position values
+                            
+  currentPos = zeros(1,3);  % matrix to store most recent set of positions
+  
+  currentAngle = zeros(1,3);% matrix to store most recent set of angles
+  
+  %anglesLog = zeros(10,4);  
+                            
+  timestamp = zeros(10,1);  % matrix to store 10 most recent timestamps
+  
+  timeAngles = zeros(10,4); % matrix to store most the angles matrix with a
+                            % column of "now" timestamps
+  
+  currTimeAngles = zeros(1,4);  % matrix to store most recent time and angle
   
   k=10
   
-  % Iterate through a sine wave for joint values
+  % Enter a loop to continuously update the plot and csv
   while true
       tic
       %incremtal = (single(k) / sinWaveInc);
 
        %Send packet to the server and get the response
             returnPacket = pp.command(STAT_SERV_ID, packet);
+            
+            % Sets the received packet into a 3x3 matrix
             returnPacketMatrix = [returnPacket(1,1) returnPacket(2,1) returnPacket(3,1);
                                   returnPacket(4,1) returnPacket(5,1) returnPacket(6,1);
                                   returnPacket(7,1) returnPacket(8,1) returnPacket(9,1)];
@@ -78,12 +92,21 @@ myHIDSimplePacketComs.setVid(vid);
           
       end
       
+      % flips the returned matrix so that the positions are in a
+      % row instead of a column
       currentPos = transpose(returnPacketMatrix(:,1));
+      
       %transfer encoder ticks into angles
       currentAngle = currentPos * 90 /1000;
+      
       toc
       pause(1) %timeit(returnPacket) !FIXME why is this needed?
+      
+      % shifts all columns to the left by 1
       angles = circshift(angles,-1,1);
+      
+      % sets the most recent received angle to the tenth position of the
+      % angles matrix
       angles(10,:) = currentAngle;
       timestamp = circshift(timestamp,-1,1);
       time = str2double(datestr(now,'MMSS'));
@@ -109,7 +132,7 @@ myHIDSimplePacketComs.setVid(vid);
   disp('Final')
   disp(positions);
    %csvwrite(['lab1Q7_' datestr(now,'mmddyyHHMMSS')  '.csv'],positions);
-   csvwrite(['lab1Q12_' datestr(now,'mmddyyHHMMSS')  '.csv'],anglesLog);
+   %csvwrite(['lab1Q12_' datestr(now,'mmddyyHHMMSS')  '.csv'],anglesLog);
 catch exception
     getReport(exception)
     disp('Exited on error, clean shutdown');
