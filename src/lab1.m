@@ -94,17 +94,17 @@ myHIDSimplePacketComs.setVid(vid);
           positions(:,:,k-1) = returnPacketMatrix;
       end
       
-      for x = 0:3
-          packet((x*3)+1)=0.1;
-          packet((x*3)+2)=0;
-          packet((x*3)+3)=0;
-      end
-      pp.write(65, packet);
-      returnPacket2=  pp.read(65);
-      if DEBUG
-          disp('Received Packet 2:');
-          disp(returnPacket2);
-      end
+%       for x = 0:3
+%           packet((x*3)+1)=0.1;
+%           packet((x*3)+2)=0;
+%           packet((x*3)+3)=0;
+%       end
+%       pp.write(65, packet);
+%       returnPacket2=  pp.read(65);
+%       if DEBUG
+%           disp('Received Packet 2:');
+%           disp(returnPacket2);
+%       end
       toc
       pause(1) %timeit(returnPacket) !FIXME why is this needed?
       
@@ -116,9 +116,6 @@ myHIDSimplePacketComs.setVid(vid);
   % Sets the home position as the first column of the averaged layers
   home = average(:,1);
   
-  pp.shutdown()
-  pause(.2)
-  
   disp('Final')
   disp(positions);
    %csvwrite(['lab1Q7_' datestr(now,'mmddyyHHMMSS')  '.csv'],positions);
@@ -128,23 +125,24 @@ myHIDSimplePacketComs.setVid(vid);
   disp(home)
   
   % sends the new home packet to the calibration server
-  pp.command(CALIB_SERV_ID,home)
-
+   pp.write(CALIB_SERV_ID,home)
+ 
+ 
+ toc
+   % gets the position from the status server to determine whether the
+   % position reflects the new home
+   pause(1);
+   newHome = pp.command(STAT_SERV_ID, packet);
+   
+   %converts the received packet to a matrix
+   newHomeMatrix = [newHome(1,1) newHome(2,1) newHome(3,1);
+                    newHome(4,1) newHome(5,1) newHome(6,1);
+                    newHome(7,1) newHome(8,1) newHome(9,1)];
+   disp('New Home')
+   disp(newHomeMatrix)
   
-  pause(2);
-  pp.shutdown()
-  pause(.2)
+   pause(10)
   
-  % gets the position from the status server to determine whether the
-  % position reflects the new home
-  newHome = pp.command(STAT_SERV_ID, packet);
-  
-  %converts the received packet to a matrix
-  newHomeMatrix = [newHome(1,1) newHome(2,1) newHome(3,1);
-                   newHome(4,1) newHome(5,1) newHome(6,1);
-                   newHome(7,1) newHome(8,1) newHome(9,1)];
-  disp('New Home')
-  disp(newHomeMatrix)
 catch exception
     getReport(exception)
     disp('Exited on error, clean shutdown');
@@ -152,5 +150,3 @@ end
 % Clear up memory upon termination
 pp.shutdown()
 
-
-toc
