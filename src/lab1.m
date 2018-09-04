@@ -10,15 +10,15 @@
 % 
 % IMPORTANT - understanding the code below requires being familiar
 % with the Nucleo firmware. Read that code first.
-clear java;
 clear
+clear java
 %clear import;
 clear classes;
 vid = hex2dec('3742');
 pid = hex2dec('0007');
 disp (vid );
 disp (pid);
-javaaddpath ../lib/SimplePacketComsJavaFat-0.5.2.jar;
+javaaddpath ../lib/SimplePacketComsJavaFat-0.6.4.jar;
 import edu.wpi.SimplePacketComs.*;
 import edu.wpi.SimplePacketComs.device.*;
 import edu.wpi.SimplePacketComs.phy.*;
@@ -70,9 +70,8 @@ myHIDSimplePacketComs.setVid(vid);
   for k = test %k = viaPts
       tic
       %incremtal = (single(k) / sinWaveInc);
-
+      packet = zeros(15, 1, 'single');
       packet(1) = k;
-
 
       %Send packet to the server and get the response
             returnPacket = pp.command(STAT_SERV_ID, packet);
@@ -81,6 +80,7 @@ myHIDSimplePacketComs.setVid(vid);
       returnPacketMatrix = [returnPacket(1,1) returnPacket(2,1) returnPacket(3,1);
                              returnPacket(4,1) returnPacket(5,1) returnPacket(6,1);
                              returnPacket(7,1) returnPacket(8,1) returnPacket(9,1)];
+
       if DEBUG
           %disp('Sent Packet:');
           %disp(packet);
@@ -92,6 +92,18 @@ myHIDSimplePacketComs.setVid(vid);
             
       if k > 1 
           positions(:,:,k-1) = returnPacketMatrix;
+      end
+      
+      for x = 0:3
+          packet((x*3)+1)=0.1;
+          packet((x*3)+2)=0;
+          packet((x*3)+3)=0;
+      end
+      pp.write(65, packet);
+      returnPacket2=  pp.read(65);
+      if DEBUG
+          disp('Received Packet 2:');
+          disp(returnPacket2);
       end
       toc
       pause(1) %timeit(returnPacket) !FIXME why is this needed?
