@@ -31,18 +31,20 @@ myHIDSimplePacketComs.setVid(vid);
 myHIDSimplePacketComs.connect();
 % Create a PacketProcessor object to send data to the nucleo firmware
 pp = PacketProcessor(myHIDSimplePacketComs);
+
+%% This code runs the arm to a setpoint and plots the joint positions
 try
     PID_SERV_ID = 37;            % we will be talking to server ID 37 on
-    % the Nucleo
+                                    % the Nucleo
     
     STAT_SERV_ID = 21;       % when passing this ID talk to the status server
     
     CALIB_SERV_ID = 25;      % when passing this ID talk to the calibration10
-    % server
+                                    % server
     
     myHIDSimplePacketComs.setVid(vid);
     
-    DEBUG   = true;          % enables/disables debug prints
+    DEBUG   = false;          % enables/disables debug prints
     needsCalibrate = true;   %needs to calibrate?
     
     % Instantiate a packet - the following instruction allocates 64
@@ -54,36 +56,31 @@ try
     % executed on joint 1 of the arm and iteratively sends the list of
     % setpoints to the Nucleo firmware.
     
-    viaPtsAngles = [[0; 5; 0], [-45; 20; 15], [45; 20; 15]];
-    %, [0; 5; 0]
+    viaPtsAngles = [[0; 5; 0], [-45; 20; 15]];
     viaPts = [[0; 0; 0],[0; 0; 0],[0; 0; 0]];
     viaPts = viaPtsAngles * 1024 / 90;
     
-    % C = pid(Kp,Ki,Kd)
-    
-    %   disp(viaPtsAngles)
-    %   disp(viaPts)
     d = size(viaPtsAngles);
     
     % The following definitions declare matrices
     test = [1,2,3,4];            % matrix to iterate through with the for loop
     
     positions = zeros(3,3,3);    % 3D matrix to store three readings from the
-    % status server
+                                        % status server
     
     average = zeros(3,3);        % matrix that will hold the average of each
-    % layer of the 3D matrix above
+                                        % layer of the 3D matrix above
     
     home = zeros(1,3);           % matrix that will hold the new home position matrices
     
-    currentPos = zeros(1,3);  % matrix to store most recent set of positions
+    currentPos = zeros(1,3);     % matrix to store most recent set of positions
     
-    currentAngle = zeros(1,3);% matrix to store most recent set of angles
+    currentAngle = zeros(1,3);   % matrix to store most recent set of angles
     
     %Multiple calls to pp.command do not return updated encoder readings
     % Iterate through points given
         if needsCalibrate
-            disp('calibrating')
+            
             for n = test
                 tic
                 %incremtal = (single(k) / sinWaveInc);
@@ -101,8 +98,8 @@ try
                     returnPacket(7,1) returnPacket(8,1) returnPacket(9,1)];
     
                 if DEBUG
-                    %disp('Sent Packet:');
-                    %disp(packet);
+                    disp('Sent Packet:');
+                    disp(packet);
                     disp('Received Packet:');
                     disp(returnPacketMatrix);
     
@@ -123,7 +120,8 @@ try
             average = ((positions(:,:,1) + positions(:,:,2) + positions(:,:,3))/3);
             % Sets the home position as the first column of the averaged layers
             home = average(:,1);
-    
+            
+            if DEBUG
             disp('Final')
             disp(positions);
             %csvwrite(['lab1Q7_' datestr(now,'mmddyyHHMMSS')  '.csv'],positions);
@@ -131,10 +129,10 @@ try
             disp(average)
             disp('Home')
             disp(home)
-    
+            end
+            
             % sends the new home packet to the calibration server
             pp.write(CALIB_SERV_ID,home)
-    
     
             toc
             % gets the position froreturnPacketMatrixm the status server to determine whether the
@@ -148,16 +146,23 @@ try
             newHomeMatrix = [newHome(1,1) newHome(2,1) newHome(3,1);
                 newHome(4,1) newHome(5,1) newHome(6,1);
                 newHome(7,1) newHome(8,1) newHome(9,1)];
+            
+            if DEBUG
             disp('New Home')
             disp(newHomeMatrix)
+            end
     
             pause(1)
     
             needsCalibrate = false;
+            
+            if DEBUG
             disp('Calibrated')
+            end
+            
         end
     for k = viaPts
-        disp('seeking location')
+        
         pidPacket = zeros(1, 15, 'single');
         pidPacket(1:3) = k;
         pp.write(STAT_SERV_ID, pidPacket);
@@ -198,6 +203,8 @@ try
             % flips the returned matrix so that the positions are in a
             % row instead of a column
             currentPos = transpose(returnPacketMatrix(:,1));
+            
+            if DEBUG
             disp ('currpos updated')
             disp(currentPos(1))
             disp(currentPos(2))
@@ -206,6 +213,8 @@ try
             disp(k(1))
             disp(k(2))
             disp(k(3))
+            end
+            
             %transfer encoder ticks into angles
             currentAngle = currentPos * 90 /1000;
             
@@ -235,6 +244,7 @@ try
             pidReturnPacket = pp.read(PID_SERV_ID);
         end                                             %END OF WHILE LOOP
         
+        if DEBUG
         disp('at location')
         disp ('currpos')
         disp(currentPos(1))
@@ -244,24 +254,8 @@ try
         disp(k(1))
         disp(k(2))
         disp(k(3))
+        end
         
-        %disp("PID");
-        %disp(pidPacket);
-        %     returnAngles = zeros(20,3,'single');
-        %     returnAngles = circshift(returnAngles,-1,1);
-        %     returnAngles(1,1:3) = pp.command(STAT_SERV_ID, packet)*90 /1000;
-        
-        
-        
-        
-        %     plot(returnAngles)
-        %         for t= 0:99
-        %             returnAngles = pp.command(STAT_SERV_ID, packet);
-        %             returnAngles = returnAngles*90 /1000
-        %             returnAnglesMatrix = [returnAngles(1,1), returnAngles(4,1), returnAngles(7,1)];
-        %             dlmwrite('lab1Q13.csv' ,returnAnglesMatrix,'delimiter',',','-append');
-        %             pause(.001)
-        %         end
         pause(2)
     end
     

@@ -31,6 +31,7 @@ myHIDSimplePacketComs.setVid(vid);
 myHIDSimplePacketComs.connect();
 % Create a PacketProcessor object to send data to the nucleo firmware
 pp = PacketProcessor(myHIDSimplePacketComs); 
+%% The Following Code Calibrates the Arm
 try
   SERV_ID = 37;            % we will be talking to server ID 37 on
                            % the Nucleo
@@ -42,18 +43,12 @@ try
   
 myHIDSimplePacketComs.setVid(vid);
 
-  DEBUG   = true;          % enables/disables debug prints
+  DEBUG   = false;          % enables/disables debug prints
 
   % Instantiate a packet - the following instruction allocates 64
   % bytes for this purpose. Recall that the HID interface supports
   % packet sizes up to 64 bytes.
   packet = zeros(15, 1, 'single');
-
-  % The following code generates a sinusoidal trajectory to be
-  % executed on joint 1 of the arm and iteratively sends the list of
-  % setpoints to the Nucleo firmware.
-  
-  %viaPts = [0, -400, 400, -400, 400, 0];
   
   % The following definitions declare matrices
   test = [1,2,3,4];            % matrix to iterate through with the for loop
@@ -66,11 +61,11 @@ myHIDSimplePacketComs.setVid(vid);
                                
   home = zeros(1,3);           % matrix that will hold the new home position matrices
 
-  % Iterate through a sine wave for joint values
-  for k = test %k = viaPts
+  for k = test
       tic
-      %incremtal = (single(k) / sinWaveInc);
+      
       packet = zeros(15, 1, 'single');
+      
       packet(1) = k;
 
       %Send packet to the server and get the response
@@ -82,8 +77,8 @@ myHIDSimplePacketComs.setVid(vid);
                              returnPacket(7,1) returnPacket(8,1) returnPacket(9,1)];
 
       if DEBUG
-          %disp('Sent Packet:');
-          %disp(packet);
+          disp('Sent Packet:');
+          disp(packet);
           disp('Received Packet:');
           disp(returnPacketMatrix);
           
@@ -102,22 +97,25 @@ myHIDSimplePacketComs.setVid(vid);
   
   % Averages the layers of the 3D matrix
   average = ((positions(:,:,1) + positions(:,:,2) + positions(:,:,3))/3);
+  
   % Sets the home position as the first column of the averaged layers
   home = average(:,1);
   
-  disp('Final')
-  disp(positions);
+  if DEBUG
+    disp('Final')
+    disp(positions);
    %csvwrite(['lab1Q7_' datestr(now,'mmddyyHHMMSS')  '.csv'],positions);
-  disp('Average')
-  disp(average)
-  disp('Home')
-  disp(home)
+    disp('Average')
+    disp(average)
+    disp('Home')
+    disp(home)
+  end
   
   % sends the new home packet to the calibration server
    pp.write(CALIB_SERV_ID,home)
  
- 
  toc
+ 
    % gets the position from the status server to determine whether the
    % position reflects the new home
    pause(1);
@@ -127,9 +125,10 @@ myHIDSimplePacketComs.setVid(vid);
    newHomeMatrix = [newHome(1,1) newHome(2,1) newHome(3,1);
                     newHome(4,1) newHome(5,1) newHome(6,1);
                     newHome(7,1) newHome(8,1) newHome(9,1)];
-   disp('New Home')
-   disp(newHomeMatrix)
-  
+   if DEBUG             
+    disp('New Home')
+    disp(newHomeMatrix)
+   end
    pause(5)
   
 catch exception

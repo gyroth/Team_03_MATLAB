@@ -34,6 +34,7 @@ pp = PacketProcessor(myHIDSimplePacketComs);
 %% 
 % This file plots the position of the arm and saves the positions in a .csv
 try
+    
   SERV_ID = 37;            % we will be talking to server ID 37 (pid server) on
                            % the Nucleo
                            
@@ -41,7 +42,7 @@ try
   
 myHIDSimplePacketComs.setVid(vid);
 
-  DEBUG   = true;          % enables/disables debug prints
+  DEBUG   = false;          % enables/disables debug prints
 
   % Instantiate a packet - the following instruction allocates 64
   % bytes for this purpose. Recall that the HID interface supports
@@ -58,9 +59,7 @@ myHIDSimplePacketComs.setVid(vid);
                             
   currentPos = zeros(1,3);  % matrix to store most recent set of positions
   
-  currentAngle = zeros(1,3);% matrix to store most recent set of angles
-  
-  %anglesLog = zeros(10,4);  
+  currentAngle = zeros(1,3);% matrix to store most recent set of angles  
                             
   timestamp = zeros(10,1);  % matrix to store 10 most recent timestamps
   
@@ -72,7 +71,7 @@ myHIDSimplePacketComs.setVid(vid);
   k=10
   
   % Enter a loop to continuously update the plot and csv
-  while true
+  while toc<120
       tic
       %incremtal = (single(k) / sinWaveInc);
 
@@ -84,12 +83,10 @@ myHIDSimplePacketComs.setVid(vid);
                                   returnPacket(4,1) returnPacket(5,1) returnPacket(6,1);
                                   returnPacket(7,1) returnPacket(8,1) returnPacket(9,1)];
       if DEBUG
-          %disp('Sent Packet:');
-          %disp(packet);
+          disp('Sent Packet:');
+          disp(packet);
           disp('Received Packet:');
           disp(returnPacketMatrix);
-                     
-          
       end
       
       % flips the returned matrix so that the positions are in a
@@ -110,9 +107,16 @@ myHIDSimplePacketComs.setVid(vid);
       angles(10,:) = currentAngle;
       timestamp = circshift(timestamp,-1,1);
       time = str2double(datestr(now,'MMSS'));
+      
+      if DEBUG
       disp(time)
+      end
+      
       timestamp(10,1)= time;
+      
+      if DEBUG
       disp(timestamp)
+      end
       
       currTimeAngles(1,1:3) = currentAngle;
       currTimeAngles(1,4)= time;
@@ -124,13 +128,13 @@ myHIDSimplePacketComs.setVid(vid);
       timeAngles (:,4) = timestamp;
       
       pause(.5);
-     end
+  end
       
-      
-  
-
+  if DEBUG
   disp('Final')
   disp(positions);
+  end
+  
    %csvwrite(['lab1Q7_' datestr(now,'mmddyyHHMMSS')  '.csv'],positions);
    %csvwrite(['lab1Q12_' datestr(now,'mmddyyHHMMSS')  '.csv'],anglesLog);
 catch exception
