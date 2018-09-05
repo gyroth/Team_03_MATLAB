@@ -93,18 +93,7 @@ myHIDSimplePacketComs.setVid(vid);
       if k > 1 
           positions(:,:,k-1) = returnPacketMatrix;
       end
-      
-%       for x = 0:3
-%           packet((x*3)+1)=0.1;
-%           packet((x*3)+2)=0;
-%           packet((x*3)+3)=0;
-%       end
-%       pp.write(65, packet);
-%       returnPacket2=  pp.read(65);
-%       if DEBUG
-%           disp('Received Packet 2:');
-%           disp(returnPacket2);
-%       end
+
       toc
       pause(1) %timeit(returnPacket) !FIXME why is this needed?
       
@@ -141,7 +130,7 @@ myHIDSimplePacketComs.setVid(vid);
    disp('New Home')
    disp(newHomeMatrix)
   
-   pause(10)
+   pause(5)
   
 catch exception
     getReport(exception)
