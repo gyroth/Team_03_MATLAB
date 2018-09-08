@@ -46,12 +46,7 @@ try
     packet(1) = 0;
     
     %Send packet to the server and get the response
-    pp.write(STAT_SERV_ID, packet);
-    
-    pause(.004);
-    
-    returnPacket = pp.read(STAT_SERV_ID);
-    
+    returnPacket = getStatus(pp, packet);
     
     % Sets the received packet into a 3x3 matrix
     returnPacketMatrix = [returnPacket(1,1) returnPacket(2,1) returnPacket(3,1);
