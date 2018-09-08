@@ -71,7 +71,7 @@ myHIDSimplePacketComs.setVid(vid);
   k=10
   
   % Enter a loop to continuously update the plot and csv
-  while toc<120
+  while toc<500
       tic
       %incremtal = (single(k) / sinWaveInc);
 
@@ -135,7 +135,7 @@ myHIDSimplePacketComs.setVid(vid);
   disp(positions);
   end
   
-   %csvwrite(['lab1Q7_' datestr(now,'mmddyyHHMMSS')  '.csv'],positions);
+   csvwrite(['lab1Q7_' datestr(now,'mmddyyHHMMSS')  '.csv'],positions);
    %csvwrite(['lab1Q12_' datestr(now,'mmddyyHHMMSS')  '.csv'],anglesLog);
 catch exception
     getReport(exception)

@@ -56,7 +56,7 @@ try
     % executed on joint 1 of the arm and iteratively sends the list of
     % setpoints to the Nucleo firmware.
     
-    viaPtsAngles = [[0; 5; 0], [-45; 20; 15]];
+    viaPtsAngles = [[0; 5; 0], [-45; 20; 15], [45;20;15]];
     viaPts = [[0; 0; 0],[0; 0; 0],[0; 0; 0]];
     viaPts = viaPtsAngles * 1024 / 90;
     
