@@ -1,6 +1,6 @@
 function calib = calibrate(pp, packet)
-%UNTITLED4 Summary of this function goes here
-%   Detailed explanation goes here
+%Gets the 10 position statuses from the arm, 
+%then averages them and sends it to the calibration server
 
 calculationCycles = [1,2,3,4,5,6,7,8,9,10,11];
 

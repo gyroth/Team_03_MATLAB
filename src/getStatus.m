@@ -1,6 +1,6 @@
 function status = getStatus(pp, packet)
-%UNTITLED3 Summary of this function goes here
-%   Detailed explanation goes here
+%getStatus
+%Returns the encoder status from the arm
 
 STAT_SERV_ID = 21;
 

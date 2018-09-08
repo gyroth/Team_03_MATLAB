@@ -1,4 +1,4 @@
-function pos = drawArm_function(joint)
+function pos = calcJointPos(joint)
 %calcJointPos:  Calculates the position of the RBE 3001 robot arm's tip with respect to the
 %                   base frame
 %
@@ -93,4 +93,6 @@ pos = [armJointXPos;
     armJointYPos;
     armJointZPos];
 end
+
+
 
