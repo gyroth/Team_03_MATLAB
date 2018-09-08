@@ -52,10 +52,43 @@ try
     
     returnPacket = pp.read(STAT_SERV_ID);
     
+    
     % Sets the received packet into a 3x3 matrix
     returnPacketMatrix = [returnPacket(1,1) returnPacket(2,1) returnPacket(3,1);
         returnPacket(4,1) returnPacket(5,1) returnPacket(6,1);
         returnPacket(7,1) returnPacket(8,1) returnPacket(9,1)];
+    currentPos = transpose(returnPacketMatrix(:,1));
+    currentAngle = currentPos * 90 /1000;
+        
+    pos= drawArm_function(currentAngle)
+    
+    xPos = pos(1,:);
+    yPos = pos(2,:);
+    zPos = pos(3,:);
+    
+    R.handle= plot3(xPos,yPos,zPos,'DisplayName','Robot Links','MarkerFaceColor',[1 0 0],...
+    'MarkerEdgeColor',[0 0 0],...
+    'MarkerSize',10,...
+    'Marker','square',...
+    'LineWidth',4,...
+    'Color',[0.850980401039124 0.325490206480026 0.0980392172932625]);
+
+    xlim([-200, 350]);
+    ylim([-350, 350]);
+    zlim([-75, 500]);
+    
+    
+    % Create xlabel
+    xlabel({'X-Distance(mm)'});
+    
+    % Create zlabel
+    zlabel({'Z-Distance(mm)'});
+    
+    % Create title
+    title({'Robotic Arm Stickplot'});
+    
+    % Create ylabel
+    ylabel({'Y-Distance(mm)'});
     
     while(1)
         %Send packet to the server and get the response
@@ -70,12 +103,18 @@ try
             returnPacket(4,1) returnPacket(5,1) returnPacket(6,1);
             returnPacket(7,1) returnPacket(8,1) returnPacket(9,1)];
         currentPos = transpose(returnPacketMatrix(:,1));
-        currentAngle = currentPos * 90 /1000;
+        currentAngle = currentPos * 90 /1000
         
-        drawArm_function(currentAngle);
+        pos= drawArm_function(currentAngle);
+        xPos = pos(1,:)
+        yPos = pos(2,:)
+        zPos = pos(3,:)
+        
+        set(R.handle, 'xdata', xPos, 'ydata', yPos, 'zdata', zPos);
+        drawnow();
     end
     
-catch
+catch exception
     getReport(exception)
     disp('Exited on error, clean shutdown');
 end

@@ -80,13 +80,17 @@ py = T03(2,4);
 pz = T03(3,4);
 
 %The positional matrix of the end-effector
-pos = [px,py,pz];
+%pos = [px,py,pz];
 
 %The positions of each joints of the arm
 armJointXPos = [0,T01(1,4),T02(1,4),T03(1,4)];
-armJointYPos = [0,T01(2,4),T02(2,4),T03(2,4)];
-armJointZPos = [0,T02(3,4),T02(3,4),T03(3,4)];
+armJointYPos = [0,T01(2,4),T02(2,4),T03(2,4)] * -1;
+armJointZPos = [0,T01(3,4),T02(3,4),T03(3,4)];
 
-createArmFigure(armJointXPos,armJointYPos,armJointZPos);
+
+
+pos = [armJointXPos;
+    armJointYPos;
+    armJointZPos];
 end
 
