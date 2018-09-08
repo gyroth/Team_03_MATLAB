@@ -74,7 +74,6 @@ try
     home = zeros(1,3);           % matrix that will hold the new home position matrices
     
     currentPos = zeros(1,3);     % matrix to store most recent set of positions
-    
     currentAngle = zeros(1,3);   % matrix to store most recent set of angles
     
     %Multiple calls to pp.command do not return updated encoder readings

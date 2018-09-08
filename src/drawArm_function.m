@@ -87,6 +87,6 @@ armJointXPos = [0,T01(1,4),T02(1,4),T03(1,4)];
 armJointYPos = [0,T01(2,4),T02(2,4),T03(2,4)];
 armJointZPos = [0,T02(3,4),T02(3,4),T03(3,4)];
 
-plot3(armJointXPos,armJointYPos,armJointZPos);
+createArmFigure(armJointXPos,armJointYPos,armJointZPos);
 end
 
