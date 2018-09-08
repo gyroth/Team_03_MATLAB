@@ -90,72 +90,7 @@ try
     moving = 1;
     
     if(needsCalibrate)
-        for k = calculationCycles
-            
-            %packet = zeros(15, 1, 'single');
-            
-            %packet(1) = k;
-            
-            %Send packet to the server and get the response
-            pp.write(STAT_SERV_ID, packet);
-            
-            pause(.004);
-            
-            returnPacket = pp.read(STAT_SERV_ID);
-            
-            % Sets the received packet into a 3x3 matrix
-            returnPacketMatrix = [returnPacket(1,1) returnPacket(2,1) returnPacket(3,1);
-                returnPacket(4,1) returnPacket(5,1) returnPacket(6,1);
-                returnPacket(7,1) returnPacket(8,1) returnPacket(9,1)];
-            
-            if DEBUG
-                disp('Sent Packet:');
-                disp(packet);
-                disp('Received Packet:');
-                disp(returnPacketMatrix);
-            end
-            
-            if k > 1
-                positions(:,:,k-1) = returnPacketMatrix;
-            end
-            
-            pause(1) %timeit(returnPacket) !FIXME why is this needed?
-            
-            
-        end
-        
-        % Averages the layers of the 3D matrix
-        average = ((positions(:,:,1) + positions(:,:,2) + positions(:,:,3))/3);
-        
-        % Sets the home position as the first column of the averaged layers
-        home = average(:,1);
-        
-        if DEBUG
-            disp('Final')
-            disp(positions);%====================================================================================
-            %csvwrite(['lab1Q7_' datestr(now,'mmddyyHHMMSS')  '.csv'],positions);
-            disp('Average')
-            disp(average)
-            disp('Home')
-            disp(home)
-        end
-        
-        % sends the new home packet to the calibration server
-        pp.write(CALIB_SERV_ID,home)
-        
-        % gets the position from the status server to determine whether the
-        % position reflects the new home
-        pause(1);
-        newHome = pp.command(STAT_SERV_ID, packet);
-        
-        %converts the received packet to a matrix
-        newHomeMatrix = [newHome(1,1) newHome(2,1) newHome(3,1);
-            newHome(4,1) newHome(5,1) newHome(6,1);
-            newHome(7,1) newHome(8,1) newHome(9,1)];
-        if DEBUG
-            disp('New Home')
-            disp(newHomeMatrix)
-        end
+        calibrate(pp, packet);
         pause(5)
         needsCalibrate = false;
     end

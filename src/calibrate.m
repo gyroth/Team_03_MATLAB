@@ -3,7 +3,11 @@ function calib = calibrate(pp, packet)
 %   Detailed explanation goes here
 
 calculationCycles = [1,2,3,4,5,6,7,8,9,10,11];
-CALIB_SERV_ID = 25;  
+
+STAT_SERV_ID = 21; % when passing this ID talk to the status server
+
+CALIB_SERV_ID = 25;  % when passing this ID talk to the calibration
+
 for k = calculationCycles
     
     %packet = zeros(15, 1, 'single');
@@ -11,7 +15,7 @@ for k = calculationCycles
     %packet(1) = k;
     
     %Send packet to the server and get the response
-    returnPacket = getStatus(packet);
+    returnPacket = getStatus(pp, packet);
     
     % Sets the received packet into a 3x3 matrix
     returnPacketMatrix = [returnPacket(1,1) returnPacket(2,1) returnPacket(3,1);
@@ -52,5 +56,6 @@ calib = [newHome(1,1) newHome(2,1) newHome(3,1);
     newHome(4,1) newHome(5,1) newHome(6,1);
     newHome(7,1) newHome(8,1) newHome(9,1)];
 
+disp('/////////Done Calibrating\\\\\\\\\\\\\\');
 end
 
