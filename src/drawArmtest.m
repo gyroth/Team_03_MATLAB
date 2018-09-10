@@ -33,10 +33,15 @@ myHIDSimplePacketComs.connect();
 pp = PacketProcessor(myHIDSimplePacketComs);
 
 try
+    % Declare packet as a 15x1 matrix and fill it with zeroes
     packet = zeros(15, 1, 'single');
     
-    returnPacket = getStatus(pp, packet);
+    % Calibrate the arm
+    calibrate(pp, packet);
+    
     % Sets the received packet into a 3x3 matrix
+    returnPacket = getStatus(pp, packet);
+    % Turns positions into angles
     currentAngle = processStatus(returnPacket);
     
     pos= calcJointPos(currentAngle);
@@ -46,8 +51,8 @@ try
     zPos = pos(3,:);
     
     fig = createStickPlot(xPos, yPos, zPos);
-    
-    while(1)
+    tic
+    while(toc<20000)
         returnPacket = getStatus(pp, packet);
         
         updatePlot(fig, returnPacket);

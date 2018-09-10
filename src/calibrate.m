@@ -43,6 +43,8 @@ average = average/10;
 % Sets the home position as the first column of the averaged layers
 home = average(:,1);
 
+%dlmwrite('lab2Q2.csv' ,home,'delimiter',',','-append');
+
 % sends the new home packet to the calibration server
 pp.write(CALIB_SERV_ID,home)
 

@@ -7,6 +7,7 @@ R.handle= plot3(xPos,yPos,zPos,'DisplayName','Robot Links','MarkerFaceColor',[1 
         'Marker','square',...
         'LineWidth',4,...
         'Color',[0.850980401039124 0.325490206480026 0.0980392172932625]);
+    grid on
     
     xlim([-200, 350]);
     ylim([-350, 350]);
