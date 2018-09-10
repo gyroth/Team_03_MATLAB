@@ -52,7 +52,7 @@ try
     
     fig = createStickPlot(xPos, yPos, zPos);
     tic
-    while(toc<20000)
+    while(toc<30)
         returnPacket = getStatus(pp, packet);
         
         updatePlot(fig, returnPacket);
