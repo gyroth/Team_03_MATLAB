@@ -34,10 +34,30 @@ pp = PacketProcessor(myHIDSimplePacketComs);
 
 try
     packet = zeros(15, 1, 'single');
+    PID_SERV_ID = 37;
+    %% Sets the Waypoints of the arm in angles
+    viaPtsAngles = [[0; 0; 0], [0; 15; 45], [0; 45; -10] , [0;0;0]];
+    viaPts = [[0; 0; 0],[0; 0; 0],[0; 0; 0],[0; 0; 0],[0; 0; 0]];
+    viaPts = viaPtsAngles * 1024 / 90;
+    
+    %First Position in Joint Space
+    joint2TrajCoef1 = cubicTraj(0,2,0,0,0,15);
+    joint3TrajCoef1 = cubicTraj(0,2,0,0,0,45);
+    
+    %Second Position in Joint Space
+    joint2TrajCoef2 = cubicTraj(2,4,0,0,15,45);
+    joint3TrajCoef2 = cubicTraj(2,4,0,0,45,-10);
+    
+    %Third Position in Joint Space
+    joint2TrajCoef3 = cubicTraj(4,6,0,0,45,0);
+    joint3TrajCoef3 = cubicTraj(4,6,0,0,-10,0);
     
     returnPacket = getStatus(pp, packet);
+    
     % Sets the received packet into a 3x3 matrix
     currentAngle = processStatus(returnPacket);
+    disp('return Pack')
+    disp(returnPacket)
     
     pos= calcJointPos(currentAngle);
     
@@ -45,15 +65,113 @@ try
     yPos = pos(2,:);
     zPos = pos(3,:);
     
+    subplot(3,2,[1,3]);
     fig = createStickPlot(xPos, yPos, zPos);
     
-    while(1)
-        returnPacket = getStatus(pp, packet);
+    tip = animatedline(double(xPos(4)),double(yPos(4)),double(zPos(4)), 'Color', 'g','LineWidth',1.5);
         
-        updatePlot(fig, returnPacket);
-    end
+    joint1 = cast(currentAngle(1),'double');
+    joint2 = cast(currentAngle(2),'double');
+    joint3 = cast(currentAngle(3),'double');
     
+    velocity1 = cast(returnPacket(2), 'double')*90/1024;
+    velocity2 = cast(returnPacket(5), 'double')*90/1024;
+    velocity3 = cast(returnPacket(8), 'double')*90/1024;
+    
+    runstart = clock;
+    
+    %Joint1 plot
+    subplot(3,2,2);
+    R = animatedline(etime(clock,runstart), joint1, 'Color', 'r','LineWidth',3);
+    xlim([0, 15]);
+    ylim([-90, 90]);
+    
+    % Create title
+    title({'Joint 1'});
+    % Create xlabel
+    xlabel({'Time(ms)'});
+    % Create ylabel
+    yyaxis left
+    ylabel({'Angle(degrees)'}, 'Color', 'r');
+    
+    yyaxis right
+    O = animatedline(etime(clock,runstart), velocity1, 'Color', 'k','LineWidth',3);
+    ylabel({'Velocity(degrees/sec)'}, 'Color', 'k');
+    ylim([-150, 150]);
+    
+    %Joint2 plot
+    subplot(3,2,4);
+    S = animatedline(etime(clock,runstart), joint2, 'Color', 'g','LineWidth',3);
+    xlim([0, 15]);
+    ylim([-90, 90]);
+    
+    % Create title
+    title({'Joint 2'});
+    % Create xlabel
+    xlabel({'X-Time(ms)'});
+    % Create ylabel
+    yyaxis left
+    ylabel({'Angle(degrees)'}, 'Color', 'g');
+    
+    yyaxis right
+    P = animatedline(etime(clock,runstart), velocity2, 'Color', 'm','LineWidth',3);
+    ylabel({'Velocity(degrees/sec)'}, 'Color', 'm');
+    ylim([-150, 150]);
+    
+    %Joint3 plot
+    subplot(3,2,6);
+    T = animatedline(etime(clock,runstart), joint3, 'Color', 'b','LineWidth',3);
+    xlim([0, 15]);
+    ylim([-90, 90]);
+    
+    % Create title
+    title({'Joint 3'});
+    % Create xlabel
+    xlabel({'X-Time(ms)'});
+    % Create ylabel
+    yyaxis left
+    ylabel({'Angle(degrees)'}, 'Color', 'b');
+    
+    yyaxis right
+    Q = animatedline(etime(clock,runstart), velocity3, 'Color', 'c','LineWidth',3);
+    ylabel({'Velocity(degrees/sec)'}, 'Color', 'c');
+    ylim([-150, 150]);
+    
+    for k = viaPts
+        start = clock;
+        
+        pidPacket = zeros(1, 15, 'single');
+        pidPacket(1:3) = k;
+        pp.write(PID_SERV_ID, pidPacket);
+        pause(.004);
+        pidReturnPacket = pp.read(PID_SERV_ID);
+        
+        while(etime(clock,start)<3)
+            returnPacket = getStatus(pp, packet);
+            updatePlot(fig, tip, returnPacket);
+            
+            currentAngle = processStatus(returnPacket);
+            jointAngle1 = cast(currentAngle(1), 'double');
+            jointAngle2 = cast(currentAngle(2), 'double');
+            jointAngle3 = cast(currentAngle(3), 'double');
+            
+            velocity1 = cast(returnPacket(2), 'double')*90/1024;
+            velocity2 = cast(returnPacket(5), 'double')*90/1024;
+            velocity3 = cast(returnPacket(8), 'double')*90/1024;
+            
+            curTime = etime(clock, runstart);
+            
+            addpoints(R, curTime, jointAngle1);
+            addpoints(O, curTime, velocity1);
+            addpoints(S, curTime, jointAngle2);
+            addpoints(P, curTime, velocity2);
+            addpoints(T, curTime, jointAngle3);
+            addpoints(Q, curTime, velocity3);
+            drawnow();
+        end
+    end
 catch exception
     getReport(exception)
     disp('Exited on error, clean shutdown');
 end
+pp.shutdown()

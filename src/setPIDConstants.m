@@ -11,5 +11,10 @@ packet = [pidVal(1,1), pidVal(1,2), pidVal(1,3), ...
 
 pp.write(PID_CONFIG_SERVER, packet);
 
+pid = zeros(15,1);
+pid=pp.read(PID_CONFIG_SERVER);
+
+
+
 end
 

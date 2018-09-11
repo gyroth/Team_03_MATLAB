@@ -104,7 +104,7 @@ try
         returnPacket = pp.read(STAT_SERV_ID);
         
         returnPacketMatrix = [returnPacket(1,1) returnPacket(2,1) returnPacket(3,1);
-            returnPacket(4,1) returnPacket(5,1) returnPacket(6,1);
+            returnPacket(4,1) returnPacketPID_SERV_ID = 37;   (5,1) returnPacket(6,1);
             returnPacket(7,1) returnPacket(8,1) returnPacket(9,1)];
         
         currentPos = transpose(returnPacketMatrix(:,1));
