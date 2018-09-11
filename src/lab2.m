@@ -11,9 +11,9 @@
 % IMPORTANT - understanding the code below requires being familiar
 % with the Nucleo firmware. Read that code first.
 clear
-clear java
+clear java %#ok<CLJAVA>
 %clear import;
-clear classes;
+clear classes; %#ok<CLCLS>
 vid = hex2dec('3742');
 pid = hex2dec('0007');
 disp (vid );
@@ -35,22 +35,14 @@ pp = PacketProcessor(myHIDSimplePacketComs);
 try
     packet = zeros(15, 1, 'single');
     PID_SERV_ID = 37;
+    runstart = clock;
+    
     %% Sets the Waypoints of the arm in angles
     viaPtsAngles = [[0; 0; 0], [0; 15; 45], [0; 45; -10] , [0;0;0]];
     viaPts = [[0; 0; 0],[0; 0; 0],[0; 0; 0],[0; 0; 0],[0; 0; 0]];
     viaPts = viaPtsAngles * 1024 / 90;
     
-    %First Position in Joint Space
-    joint2TrajCoef1 = cubicTraj(0,2,0,0,0,15);
-    joint3TrajCoef1 = cubicTraj(0,2,0,0,0,45);
-    
-    %Second Position in Joint Space
-    joint2TrajCoef2 = cubicTraj(2,4,0,0,15,45);
-    joint3TrajCoef2 = cubicTraj(2,4,0,0,45,-10);
-    
-    %Third Position in Joint Space
-    joint2TrajCoef3 = cubicTraj(4,6,0,0,45,0);
-    joint3TrajCoef3 = cubicTraj(4,6,0,0,-10,0);
+    previous = [0;0;0];
     
     returnPacket = getStatus(pp, packet);
     
@@ -69,6 +61,11 @@ try
     fig = createStickPlot(xPos, yPos, zPos);
     
     tip = animatedline(double(xPos(4)),double(yPos(4)),double(zPos(4)), 'Color', 'g','LineWidth',1.5);
+    
+    %setpoint.handle = scatter3(double(xPos(4)),double(yPos(4)),double(zPos(4)), '*'); %'Marker', 'o',...
+      % 'MarkerEdge', [0,0,0] ,...
+       % 'MarkerFaceColor', [0,0,1],...
+       % 'MarkerSize', 5);
         
     joint1 = cast(currentAngle(1),'double');
     joint2 = cast(currentAngle(2),'double');
@@ -78,18 +75,16 @@ try
     velocity2 = cast(returnPacket(5), 'double')*90/1024;
     velocity3 = cast(returnPacket(8), 'double')*90/1024;
     
-    runstart = clock;
-    
     %Joint1 plot
     subplot(3,2,2);
     R = animatedline(etime(clock,runstart), joint1, 'Color', 'r','LineWidth',3);
-    xlim([0, 15]);
+    xlim([10,50]);
     ylim([-90, 90]);
     
     % Create title
     title({'Joint 1'});
     % Create xlabel
-    xlabel({'Time(ms)'});
+    xlabel({'Time(s)'});
     % Create ylabel
     yyaxis left
     ylabel({'Angle(degrees)'}, 'Color', 'r');
@@ -100,15 +95,15 @@ try
     ylim([-150, 150]);
     
     %Joint2 plot
-    subplot(3,2,4);
+    subplot(3,2,4); pause(.004);
     S = animatedline(etime(clock,runstart), joint2, 'Color', 'g','LineWidth',3);
-    xlim([0, 15]);
+    xlim([10,50]);
     ylim([-90, 90]);
     
     % Create title
     title({'Joint 2'});
     % Create xlabel
-    xlabel({'X-Time(ms)'});
+    xlabel({'Time(s)'});
     % Create ylabel
     yyaxis left
     ylabel({'Angle(degrees)'}, 'Color', 'g');
@@ -121,13 +116,13 @@ try
     %Joint3 plot
     subplot(3,2,6);
     T = animatedline(etime(clock,runstart), joint3, 'Color', 'b','LineWidth',3);
-    xlim([0, 15]);
+    xlim([10,50]);
     ylim([-90, 90]);
     
     % Create title
     title({'Joint 3'});
     % Create xlabel
-    xlabel({'X-Time(ms)'});
+    xlabel({'Time(s)'});
     % Create ylabel
     yyaxis left
     ylabel({'Angle(degrees)'}, 'Color', 'b');
@@ -137,38 +132,64 @@ try
     ylabel({'Velocity(degrees/sec)'}, 'Color', 'c');
     ylim([-150, 150]);
     
+    subplot(3,2,5);
+    V = animatedline(etime(clock,runstart), double(xPos(4)), 'Color', [.196,.784,.235], 'LineWidth', 3);
+    %Create title
+    title({'X&Y Tip Position'});
+    
+    %Create xlabel
+    xlabel({'Time(s)'});
+    %Limit X
+    xlim([10,50]);
+    
+    yyaxis left
+    %Create ylabel
+    ylabel({'X Position(mm)'}, 'Color', [.196,.784,.235]);
+    ylim([-100,400]);
+    
+    yyaxis right
+    W = animatedline(etime(clock,runstart), double(zPos(4)), 'Color', [.804,.216,.765], 'LineWidth', 3);
+    %Create yylabel
+    ylabel({'Z Position(mm)'}, 'Color', [.804,.216,.765]);
+    ylim([-100,400]);
+    traveltime = 10;
     for k = viaPts
+        
+        last = previous;
+        
+        previous = k;
+        
         start = clock;
         
-        pidPacket = zeros(1, 15, 'single');
-        pidPacket(1:3) = k;
-        pp.write(PID_SERV_ID, pidPacket);
-        pause(.004);
-        pidReturnPacket = pp.read(PID_SERV_ID);
+        joint1TrajCoef = cubicTraj(0,traveltime,0,0,last(1),k(1));
+        joint2TrajCoef = cubicTraj(0,traveltime,0,0,last(2),k(2));
+        joint3TrajCoef = cubicTraj(0,traveltime,0,0,last(3),k(3));
         
-        while(etime(clock,start)<3)
+        pidPacket = zeros(1, 15, 'single');
+
+        
+        while(etime(clock,start)<traveltime)
+%joint 2 
+            J1 = posPoint(etime(clock,start), joint1TrajCoef(1,1), joint1TrajCoef(2,1), joint1TrajCoef(3,1), joint1TrajCoef(4,1));
+            J2 = posPoint(etime(clock,start), joint2TrajCoef(1,1), joint2TrajCoef(2,1), joint2TrajCoef(3,1), joint2TrajCoef(4,1));
+            J3 = posPoint(etime(clock,start), joint3TrajCoef(1,1), joint3TrajCoef(2,1), joint3TrajCoef(3,1), joint3TrajCoef(4,1));
+            
+            I = [J1;J2;J3];
+            
+            pidPacket(1:3) = [J1,J2,J3];
+            pp.write(PID_SERV_ID, pidPacket);
+            pause(.004);
+            pidReturnPacket = pp.read(PID_SERV_ID);
             returnPacket = getStatus(pp, packet);
-            updatePlot(fig, tip, returnPacket);
-            
-            currentAngle = processStatus(returnPacket);
-            jointAngle1 = cast(currentAngle(1), 'double');
-            jointAngle2 = cast(currentAngle(2), 'double');
-            jointAngle3 = cast(currentAngle(3), 'double');
-            
-            velocity1 = cast(returnPacket(2), 'double')*90/1024;
-            velocity2 = cast(returnPacket(5), 'double')*90/1024;
-            velocity3 = cast(returnPacket(8), 'double')*90/1024;
-            
             curTime = etime(clock, runstart);
             
-            addpoints(R, curTime, jointAngle1);
-            addpoints(O, curTime, velocity1);
-            addpoints(S, curTime, jointAngle2);
-            addpoints(P, curTime, velocity2);
-            addpoints(T, curTime, jointAngle3);
-            addpoints(Q, curTime, velocity3);
+            updatePlot(fig, tip, O, P, Q, R, S, T, V, W, I, curTime, returnPacket);
+            %updatePlot(fig, tip, O, P, Q, R, S, T, V, W, setpoint, I, curTime, returnPacket);
+            
+
             drawnow();
         end
+        
     end
 catch exception
     getReport(exception)
