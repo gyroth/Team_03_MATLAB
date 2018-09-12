@@ -10,10 +10,6 @@ CALIB_SERV_ID = 25;  % when passing this ID talk to the calibration
 
 for k = calculationCycles
     
-    %packet = zeros(15, 1, 'single');
-    
-    %packet(1) = k;
-    
     %Send packet to the server and get the response
     returnPacket = getStatus(pp, packet);
     
@@ -26,7 +22,7 @@ for k = calculationCycles
         positions(:,:,k-1) = returnPacketMatrix;
     end
     
-    pause(1) %timeit(returnPacket) !FIXME why is this needed?
+    pause(1)
     
     
 end
@@ -43,6 +39,7 @@ average = average/10;
 % Sets the home position as the first column of the averaged layers
 home = average(:,1);
 
+%appends the most recent averaged home position to a csv called lab2Q2
 %dlmwrite('lab2Q2.csv' ,home,'delimiter',',','-append');
 
 % sends the new home packet to the calibration server
@@ -58,6 +55,6 @@ calib = [newHome(1,1) newHome(2,1) newHome(3,1);
     newHome(4,1) newHome(5,1) newHome(6,1);
     newHome(7,1) newHome(8,1) newHome(9,1)];
 
-disp('/////////Done Calibrating\\\\\\\\\\\\\\');
+%disp('/////////Done Calibrating\\\\\\\\\\\\\\');
 end
 
