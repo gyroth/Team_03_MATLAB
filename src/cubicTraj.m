@@ -1,6 +1,6 @@
 function [ a_i ] = cubicTraj( t_0, t_f, v_0, v_f, q_0, q_f )
-%cubicTraj: Summary of this function goes here
-%   Detailed explanation goes here
+%cubicTraj: Calculates the coefficients for a cubic trajectory polynomial
+%   Uses the desired initial time, end time, initial velocity, end velocity, initial joint angle, and end joint angle to calculate the 4x1 matrix of coefficients
 
 a_i = inv([1,      t_0,        power(t_0,2),       power(t_0,3);
     
