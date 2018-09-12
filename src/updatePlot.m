@@ -1,7 +1,6 @@
 function pos = updatePlot(fig, tip, O,P,Q,R,S,T,V, W, I, curTime, returnPacket)
-%function pos = updatePlot(fig, tip, O,P,Q,R,S,T,V, W,setpoint, I, curTime, returnPacket)
 
-%Updates the stickplot of the arm
+%Updates the plots of the arm and its variables
 
 currentAngle = processStatus(returnPacket);
 
@@ -20,7 +19,6 @@ velocity2 = cast(returnPacket(5), 'double')*90/1024;
 velocity3 = cast(returnPacket(8), 'double')*90/1024;
 
 addpoints(tip, double(xPos(4)), double(yPos(4)), double(zPos(4)));
-%set(setpoint.handle, 'xdata', I(1), 'ydata', I(2), 'zdata', I(3));
 
 addpoints(V, curTime, double(xPos(4)));
 addpoints(W, curTime, double(zPos(4)));
