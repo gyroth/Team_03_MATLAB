@@ -1,15 +1,14 @@
 %%
-% RBE3001 - Laboratory 1
+% RBE3001 - Laboratory 2
 %
-% Instructions
+% 
 % ------------
-% Welcome again! This MATLAB script is your starting point for Lab
-% 1 of RBE3001. The sample code below demonstrates how to establish
-% communicrm,	namely	it	will	make	it	swing	back	and	forth	two	times.ation between this script and the Nucleo firmware, send
-%+ setpoint commands and receive sensor data.
+% This MATLAB script creates a live stick model plot of the robotic arm for
+% lab 2 of RBE3001. The code below also uses a cubic trajectory function to plot points between
+% four assigned points oriented in the X,Z plane. It also creates plots of the joint positions and velocities while 
+% tracing the tip of the robot on the stick plot.
 %
-% IMPORTANT - understanding the code below requires being familiar
-% with the Nucleo firmware. Read that code first.
+% 
 clear
 clear java %#ok<CLJAVA>
 %clear import;
@@ -61,11 +60,6 @@ try
     fig = createStickPlot(xPos, yPos, zPos);
     
     tip = animatedline(double(xPos(4)),double(yPos(4)),double(zPos(4)), 'Color', 'g','LineWidth',1.5);
-    
-    %setpoint.handle = scatter3(double(xPos(4)),double(yPos(4)),double(zPos(4)), '*'); %'Marker', 'o',...
-      % 'MarkerEdge', [0,0,0] ,...
-       % 'MarkerFaceColor', [0,0,1],...
-       % 'MarkerSize', 5);
         
     joint1 = cast(currentAngle(1),'double');
     joint2 = cast(currentAngle(2),'double');
@@ -169,9 +163,11 @@ try
 
         
         while(etime(clock,start)<traveltime)
-%joint 2 
+            %joint 1 trajectory points
             J1 = posPoint(etime(clock,start), joint1TrajCoef(1,1), joint1TrajCoef(2,1), joint1TrajCoef(3,1), joint1TrajCoef(4,1));
+            %joint 2 trajectory points
             J2 = posPoint(etime(clock,start), joint2TrajCoef(1,1), joint2TrajCoef(2,1), joint2TrajCoef(3,1), joint2TrajCoef(4,1));
+            %joint 3 trajectory points
             J3 = posPoint(etime(clock,start), joint3TrajCoef(1,1), joint3TrajCoef(2,1), joint3TrajCoef(3,1), joint3TrajCoef(4,1));
             
             I = [J1;J2;J3];
@@ -183,9 +179,7 @@ try
             returnPacket = getStatus(pp, packet);
             curTime = etime(clock, runstart);
             
-            updatePlot(fig, tip, O, P, Q, R, S, T, V, W, I, curTime, returnPacket);
-            %updatePlot(fig, tip, O, P, Q, R, S, T, V, W, setpoint, I, curTime, returnPacket);
-            
+            updatePlot(fig, tip, O, P, Q, R, S, T, V, W, I, curTime, returnPacket);         
 
             drawnow();
         end
