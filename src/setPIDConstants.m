@@ -1,6 +1,6 @@
 function emptyPacket = setPIDConstants( pp, pidVal)
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
+%setPIDConstants transforms the given matrix of PID values into a form to be sent to the Nucleo firmware
+
 emptyPacket = 0;
 
 PID_CONFIG_SERVER = 65;
@@ -13,8 +13,6 @@ pp.write(PID_CONFIG_SERVER, packet);
 
 pid = zeros(15,1);
 pid=pp.read(PID_CONFIG_SERVER);
-
-
 
 end
 
