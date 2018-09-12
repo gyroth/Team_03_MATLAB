@@ -1,15 +1,7 @@
 %%
-% RBE3001 - Laboratory 1
+% RBE3001 - Laboratory 2
 %
-% Instructions
-% ------------
-% Welcome again! This MATLAB script is your starting point for Lab
-% 1 of RBE3001. The sample code below demonstrates how to establish
-% communicrm,	namely	it	will	make	it	swing	back	and	forth	two	times.ation between this script and the Nucleo firmware, send
-%+ setpoint commands and receive sensor data.
-%
-% IMPORTANT - understanding the code below requires being familiar
-% with the Nucleo firmware. Read that code first.
+%This code draws the stick plot and updates it with the current position of the arm
 clear
 clear java
 %clear import;
@@ -51,7 +43,10 @@ try
     zPos = pos(3,:);
     
     fig = createStickPlot(xPos, yPos, zPos);
+    
     tic
+    
+    %runs for 10 seconds after tic
     while(toc<10)
         returnPacket = getStatus(pp, packet);
         
