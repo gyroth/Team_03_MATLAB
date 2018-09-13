@@ -36,6 +36,7 @@ try
     PID_SERV_ID = 37;
     runstart = clock;
     
+    calibrate(pp,packet);
     %% Sets the Waypoints of the arm in angles
     viaPtsAngles = [[0; 0; 0], [0; 15; 45], [0; 45; -10] , [0;0;0]];
     viaPts = [[0; 0; 0],[0; 0; 0],[0; 0; 0],[0; 0; 0],[0; 0; 0]];

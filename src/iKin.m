@@ -25,20 +25,19 @@ outputArg(2) = alpha + beta;
 jA2 = outputArg(2)
 
 %Joint 3 Angle
-outputArg(3) = -acosd((power(L2,2) + power(L3,2) - power(L4,2))/(2 * L3 * L4)) + 180;
+outputArg(3) = -(-acosd((power(L2,2) + power(L3,2) - power(L4,2))/(2 * L2 * L3)) + 90);
 jA3 = outputArg(3)
-
 %Errors if generated angles or if the points are outside capable range of robot arm
-if or((jA1 > 90), (jA1 < -90))
-    error( 'Joint 1 outside bounds.')
-end
-if or((jA2 > 90), (jA2 < 0))
-    error( 'Joint 2 outside bounds.')
-end
-if or((jA3 > 90), (jA3< -30))
-    error( 'Joint 3 outside bounds.')
-end
-if (power(inputArg(1),2)+power(inputArg(2),2) > (L1 + L2)*cosd(jA2))
-    error( 'Distance outside possible range.')
-end
+% if or((jA1 > 90), (jA1 < -90))
+%     error( 'Joint 1 outside bounds.')
+% end
+% if or((jA2 > 90), (jA2 < 0))
+%     error( 'Joint 2 outside bounds.')
+% end
+% if or((jA3 > 90), (jA3< -30))
+%     error( 'Joint 3 outside bounds.')
+% end
+% if (power(inputArg(1),2)+power(inputArg(2),2) > (L1 + L2)*cosd(jA2))
+%     error( 'Distance outside possible range.')
+% end
 end

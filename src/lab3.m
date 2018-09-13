@@ -31,19 +31,37 @@ myHIDSimplePacketComs.connect();
 % Create a PacketProcessor object to send data to the nucleo firmware
 pp = PacketProcessor(myHIDSimplePacketComs);
 
+kP1 = .0001;
+kI1 = .0001;
+kD1 = .002;
+
+kP2 = .004;
+kI2 = 0;
+kD2 = .009;
+
+kP3 = .004;
+kI3 = 0;
+kD3 = .009;
+
 try
     packet = zeros(15, 1, 'single');
     PID_SERV_ID = 37;
     runstart = clock;
     
-    returnPacket = getStatus(pp, packet);
+     pidVal = [kP1, kI1, kD1; ...
+        kP2, kI2, kD2; ...
+        kP3, kI3, kD3];
     
+    setPIDConstants(pp, pidVal);
+    
+    returnPacket = getStatus(pp, packet);
+    calibrate(pp,packet);
     % Sets the received packet into a 3x3 matrix
     currentAngle = processStatus(returnPacket);
-    disp('return Pack')
-    disp(returnPacket)
+%     disp('return Pack')
+%     disp(returnPacket)
     
-    pos= calcJointPos(currentAngle)
+    pos= calcJointPos(currentAngle);
     
     %% Sets the Waypoints of the arm in angles
     %viaPtsAngles = [[0; 0; 0], [0; 15; 45], [0; 45; -10] , [0;0;0]];
@@ -53,10 +71,14 @@ try
     % Sets the position of the arm in task space
     
     % Waypoints for tip in millimeters
-    viaPos = [-13,161,-52];
+    viaPos = [[0;-175;10],[0;-5;130+175+169.28]];
+    viaJtsAngles = [[0; 0; 0],[0; 0; 0]];
     
     % The joint angles to which to send the arm
-    viaJts = iKin(viaPos);
+    viaJtsAngles(:,1) = iKin(viaPos(:,1));
+    viaJtsAngles(:,2) = iKin(viaPos(:,2));
+    
+    viaJts = viaJtsAngles * 1024 / 90;
     
     previous = [0;0;0];
     
@@ -75,7 +97,6 @@ try
     
     %subplot(3,2,[1,3]);
     fig = createStickPlot(xPos, yPos, zPos);
-    
     tip = animatedline(double(xPos(4)),double(yPos(4)),double(zPos(4)), 'Color', 'g','LineWidth',1.5);
     
     
@@ -115,7 +136,7 @@ try
     
     %Joint2 plot
     %subplot(3,2,4); pause(.004);
-    %S = animatedline(etime(clock,runstart), joint2, 'Color', 'g','LineWidth',3);
+    %S = animatedline    tip = animatedline(double(viaJts(1)),double(viaJts(2)),double(viaJts(3)), 'Color', 'g','LineWidth',1.5);(etime(clock,runstart), joint2, 'Color', 'g','LineWidth',3);
     %xlim([10,50]);
     %ylim([-90, 90]);
     
@@ -151,7 +172,7 @@ try
     %ylabel({'Velocity(degrees/sec)'}, 'Color', 'c');
     %ylim([-150, 150]);
     
-    %subplot(3,2,5);
+    %subplot(3,2,5); pause(.1);
     %V = animatedline(etime(clock,runstart), double(xPos(4)), 'Color', [.196,.784,.235], 'LineWidth', 3);
     %Create title
     %title({'X&Y Tip Position'});
@@ -187,31 +208,33 @@ try
         joint3TrajCoef = cubicTraj(0,traveltime,0,0,last(3),k(3));
         
         pidPacket = zeros(1, 15, 'single');
-
-        while(1)
+     traveltime = 5;
+        while(etime(clock,start)<traveltime)
         %while(etime(clock,start)<traveltime)
-            %joint 1 trajectory points
-            J1 = posPoint(etime(clock,start), joint1TrajCoef(1,1), joint1TrajCoef(2,1), joint1TrajCoef(3,1), joint1TrajCoef(4,1));
-            %joint 2 trajectory points
-            J2 = posPoint(etime(clock,start), joint2TrajCoef(1,1), joint2TrajCoef(2,1), joint2TrajCoef(3,1), joint2TrajCoef(4,1));
-            %joint 3 trajectory points
-            J3 = posPoint(etime(clock,start), joint3TrajCoef(1,1), joint3TrajCoef(2,1), joint3TrajCoef(3,1), joint3TrajCoef(4,1));
-            
-            I = [J1;J2;J3];
+%             %joint 1 trajectory points
+%             J1 = posPoint(etime(clock,start), joint1TrajCoef(1,1), joint1TrajCoef(2,1), joint1TrajCoef(3,1), joint1TrajCoef(4,1));
+%             %joint 2 trajectory points
+%             J2 = posPoint(etime(clock,start), joint2TrajCoef(1,1), joint2TrajCoef(2,1), joint2TrajCoef(3,1), joint2TrajCoef(4,1));
+%             %joint 3 trajectory points
+%             J3 = posPoint(etime(clock,start), joint3TrajCoef(1,1), joint3TrajCoef(2,1), joint3TrajCoef(3,1), joint3TrajCoef(4,1));
+%             
+%             I = [J1;J2;J3];
             
             %pidPacket(1:3) = [J1,J2,J3];
             pidPacket(1:3) = k;
+            
             pp.write(PID_SERV_ID, pidPacket);
             pause(.004);
             pidReturnPacket = pp.read(PID_SERV_ID);
+            
             returnPacket = getStatus(pp, packet);
             curTime = etime(clock, runstart);
             
-            updatePlot(fig, tip, returnPacket);%O, P, Q, R, S, T, V, W, I, curTime, returnPacket);         
+            updatePlotLab3(fig, tip, returnPacket);         
 
             drawnow();
         end
-        
+       
     end
 catch exception
     getReport(exception)
