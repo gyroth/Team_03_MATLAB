@@ -24,7 +24,7 @@ import edu.wpi.SimplePacketComs.device.*;
 import edu.wpi.SimplePacketComs.phy.*;
 import java.util.*;
 import org.hid4java.*;
-version -java;
+version -java
 myHIDSimplePacketComs=HIDfactory.get();
 myHIDSimplePacketComs.setPid(pid);
 myHIDSimplePacketComs.setVid(vid);
@@ -76,6 +76,12 @@ myHIDSimplePacketComs.setVid(vid);
                              returnPacket(4,1) returnPacket(5,1) returnPacket(6,1);
                              returnPacket(7,1) returnPacket(8,1) returnPacket(9,1)];
 
+     
+      % Send packet to the server and get the response
+      returnPacket = pp.command(SERV_ID, packet);
+      toc
+
+
       if DEBUG
           disp('Sent Packet:');
           disp(packet);
@@ -87,6 +93,23 @@ myHIDSimplePacketComs.setVid(vid);
             
       if k > 1 
           positions(:,:,k-1) = returnPacketMatrix;
+
+      for x = 0:3
+          packet((x*3)+1)=0.1;
+          packet((x*3)+2)=0;
+          packet((x*3)+3)=0;
+      end
+      %THis version will send the command once per call of pp.write
+      pp.write(65, packet);
+      pause(0.003);
+      returnPacket2=  pp.read(65);
+      %this version will start an auto-polling server and read back the
+      %current data
+      %returnPacket2=  pp.command(65, packet);
+      if DEBUG
+          disp('Received Packet 2:');
+          disp(returnPacket2);
+
       end
 
       toc
