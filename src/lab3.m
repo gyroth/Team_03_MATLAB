@@ -1,14 +1,14 @@
 %%
 % RBE3001 - Laboratory 3
 %
-% 
+%
 % ------------
 % This MATLAB script creates a live stick model plot of the robotic arm for
 % lab 2 of RBE3001. The code below also uses a cubic trajectory function to plot points between
-% four assigned points oriented in the X,Z plane. It also creates plots of the joint positions and velocities while 
+% four assigned points oriented in the X,Z plane. It also creates plots of the joint positions and velocities while
 % tracing the tip of the robot on the stick plot.
 %
-% 
+%
 clear
 clear java %#ok<CLJAVA>
 %clear import;
@@ -45,10 +45,9 @@ kD3 = .009;
 
 try
     packet = zeros(15, 1, 'single');
-    PID_SERV_ID = 37;
-    runstart = clock;
+    PID_SERV_ID = 37;  
     
-     pidVal = [kP1, kI1, kD1; ...
+    pidVal = [kP1, kI1, kD1; ...
         kP2, kI2, kD2; ...
         kP3, kI3, kD3];
     
@@ -58,10 +57,24 @@ try
     calibrate(pp,packet);
     % Sets the received packet into a 3x3 matrix
     currentAngle = processStatus(returnPacket);
-%     disp('return Pack')
-%     disp(returnPacket)
-    
+    %     disp('return Pack')
+    %     disp(returnPacket)
+    runstart = clock;
+     
     pos= calcJointPos(currentAngle);
+    
+    xPos = zeros(3,1,'single');
+    yPos = zeros(3,1,'single');
+    zPos = zeros(3,1,'single');
+    
+    xVel = zeros(3,1,'single');
+    yVel = zeros(3,1,'single');
+    zVel = zeros(3,1,'single');
+    
+    xAcc = zeros(3,1,'single');
+    yAcc = zeros(3,1,'single');
+    zAcc = zeros(3,1,'single');
+    curTime = 0;
     
     %% Sets the Waypoints of the arm in angles
     %viaPtsAngles = [[0; 0; 0], [0; 15; 45], [0; 45; -10] , [0;0;0]];
@@ -72,14 +85,17 @@ try
     
     % Waypoints for tip in millimeters
     viaPos = [[175;0;0],[45;-25;130], [50;25;120],[175;0;0]];
-    viaJtsAngles = [[0; 0; 0],[0; 0; 0]];
+    viaJtsAngles = zeros(3,12,3,'single');
     
+    for b = 1:3
+        viaPnts(:,:,b) = interpolate(viaPos(:,b), viaPos(:,b+1));
+    end
     % The joint angles to which to send the arm
-    viaJtsAngles(:,1) = iKin(viaPos(:,1));
-    viaJtsAngles(:,2) = iKin(viaPos(:,2));
-    viaJtsAngles(:,3) = iKin(viaPos(:,3));
-    viaJtsAngles(:,4) = iKin(viaPos(:,4));
-    
+    for c = 1:3
+        for d = 1:12
+            viaJtsAngles(:,d,c) = iKin(viaPnts(:,d,c));
+        end
+    end
     viaJts = viaJtsAngles * 1024 / 90;
     
     previous = [0;0;0];
@@ -97,7 +113,7 @@ try
     yPos = pos(2,:);
     zPos = pos(3,:);
     
-    subplot(2,2,[1,3]);
+    subplot(3,2,[1,3]);
     fig = createStickPlot(xPos, yPos, zPos);
     tip = animatedline(double(xPos(4)),double(yPos(4)),double(zPos(4)), 'Color', 'g','LineWidth',1.5);
     
@@ -109,30 +125,30 @@ try
     returnPacket = getStatus(pp, packet);
     
     % Sets the received packet into a 3x3 matrix
-    joint1 = cast(currentAngle(1),'double');
-    joint2 = cast(currentAngle(2),'double');
-    joint3 = cast(currentAngle(3),'double');
+    %     joint1 = cast(currentAngle(1),'double');
+    %     joint2 = cast(currentAngle(2),'double');
+    %     joint3 = cast(currentAngle(3),'double');
     
     %velocity1 = cast(returnPacket(2), 'double')*90/1024;
     %velocity2 = cast(returnPacket(5), 'double')*90/1024;
     %velocity3 = cast(returnPacket(8), 'double')*90/1024;
     
     %Joint1 plot
-    subplot(2,2,2);
-    R = animatedline(etime(clock,runstart), joint1, 'Color', 'r','LineWidth',3);
-    S = animatedline(etime(clock,runstart), joint2, 'Color', 'g','LineWidth',3);
-    T = animatedline(etime(clock,runstart), joint3, 'Color', 'b','LineWidth',3);
-    xlim([10,50]);
-    ylim([-100, 100]);
-    
-    % Create title
-    title({'Joint Angles'});
-    % Create xlabel
-    xlabel({'Time(s)'});
-    % Create ylabel
-    yyaxis left
-    ylabel({'Angle(degrees)'}, 'Color', 'r');
-    legend('Joint 1', 'Joint 2', 'Joint 3', 'Location', 'northeast');
+    %     subplot(2,2,2);
+    %     R = animatedline(etime(clock,runstart), joint1, 'Color', 'r','LineWidth',3);
+    %     S = animatedline(etime(clock,runstart), joint2, 'Color', 'g','LineWidth',3);
+    %     T = animatedline(etime(clock,runstart), joint3, 'Color', 'b','LineWidth',3);
+    %     xlim([10,50]);
+    %     ylim([-100, 100]);
+    %
+    %     % Create title
+    %     title({'Joint Angles'});
+    %     % Create xlabel
+    %     xlabel({'Time(s)'});
+    %     % Create ylabel
+    %     yyaxis left
+    %     ylabel({'Angle(degrees)'}, 'Color', 'r');
+    %     legend('Joint 1', 'Joint 2', 'Joint 3', 'Location', 'northeast');
     
     %yyaxis right
     %O = animatedline(etime(clock,runstart), velocity1, 'Color', 'k','LineWidth',3);
@@ -140,44 +156,44 @@ try
     %ylim([-150, 150]);
     
     %Joint2 plot
-%     subplot(3,2,4); pause(.004);
-%     S = animatedline(etime(clock,runstart), joint2, 'Color', 'g','LineWidth',3);
-%     xlim([10,50]);
-%     ylim([-90, 90]);
-%     
-%     % Create title
-%     title({'Joint 2'});
-%     % Create xlabel
-%     xlabel({'Time(s)'});
-%     % Create ylabel
-%     yyaxis left
-%     ylabel({'Angle(degrees)'}, 'C100olor', 'g');
-%     
+    %     subplot(3,2,4); pause(.004);
+    %     S = animatedline(etime(clock,runstart), joint2, 'Color', 'g','LineWidth',3);
+    %     xlim([10,50]);
+    %     ylim([-90, 90]);
+    %
+    %     % Create title
+    %     title({'Joint 2'});
+    %     % Create xlabel
+    %     xlabel({'Time(s)'});
+    %     % Create ylabel
+    %     yyaxis left
+    %     ylabel({'Angle(degrees)'}, 'C100olor', 'g');
+    %
     %yyaxis right
     %P = animatedline(etime(clock,runstart), velocity2, 'Color', 'm','LineWidth',3);
     %ylabel({'Velocity(degrees/sec)'}, 'Color', 'm');
     %ylim([-150, 150]);
     
     %Joint3 plot
-%     subplot(3,2,6);
-%     T = animatedline(etime(clock,runstart), joint3, 'Color', 'b','LineWidth',3);
-%     xlim([10,50]);
-%     ylim([-90, 90]);
-%     
-%     % Create title
-%     title({'Joint 3'});
-%     % Create xlabel
-%     xlabel({'Time(s)'});
-%     % Create ylabel
-%     yyaxis left
-%     ylabel({'Angle(degrees)'}, 'Color', 'b');
+    %     subplot(3,2,6);
+    %     T = animatedline(etime(clock,runstart), joint3, 'Color', 'b','LineWidth',3);
+    %     xlim([10,50]);
+    %     ylim([-90, 90]);
+    %
+    %     % Create title
+    %     title({'Joint 3'});
+    %     % Create xlabel
+    %     xlabel({'Time(s)'});
+    %     % Create ylabel
+    %     yyaxis left
+    %     ylabel({'Angle(degrees)'}, 'Color', 'b');
     
     %yyaxis rightlegend('Joint 1', 'Joint 2', 'Joint 3', 'Location', 'northeast');
     %Q = animatedline(etime(clock,runstart), velocity3, 'Color', 'c','LineWidth',3);
     %ylabel({'Velocity(degrees/sec)'}, 'Color', 'c');
     %ylim([-150, 150]);
     
-    subplot(2,2,4); pause(.1);
+    subplot(3,2,2); pause(.1);
     V = animatedline(etime(clock,runstart), double(xPos(4)), 'Color', [.196,.784,.235], 'LineWidth', 3);
     W = animatedline(etime(clock,runstart), double(zPos(4)), 'Color', [.804,.216,.765], 'LineWidth', 3);
     X = animatedline(etime(clock,runstart), double(yPos(4)), 'Color', [.962,.145,.342], 'LineWidth', 3);
@@ -187,21 +203,51 @@ try
     %Create xlabel
     xlabel({'Time(s)'});
     %Limit X
-    xlim([10,50]);
+    xlim([0,10]);
     
-    yyaxis left
     %Create ylabel
-    ylabel({'X Position(mm)'}, 'Color', [.196,.784,.235]);
+    ylabel({'Position(mm)'}, 'Color', [.196,.784,.235]);
     ylim([-400,400]);
     
     legend('X Position', 'Y Position', 'Z Position', 'Location', 'northeast');
-    %yyaxis right
-    %W = animatedline(etime(clock,runstart), double(zPos(4)), 'Color', [.804,.216,.765], 'LineWidth', 3);
-    %Create yylabel
-    %ylabel({'Z Position(mm)'}, 'Color', [.804,.216,.765]);
-    %ylim([-100,400]);
     
-    traveltime = 3;
+    subplot(3,2,4); pause(.1);
+    Y = animatedline(etime(clock,runstart), double(xPos(4)), 'Color', [.196,.784,.235], 'LineWidth', 3);
+    Z = animatedline(etime(clock,runstart), double(zPos(4)), 'Color', [.804,.216,.765], 'LineWidth', 3);
+    AA = animatedline(etime(clock,runstart), double(yPos(4)), 'Color', [.962,.145,.342], 'LineWidth', 3);
+    %Create title
+    title({'Tip Velocity'});
+    
+    %Create xlabel
+    xlabel({'Time(s)'});
+    %Limit X
+    xlim([0,10]);
+    
+    %Create ylabel
+    ylabel({'Velocity(mm/sec)'}, 'Color', [.196,.784,.235]);
+    ylim([-400,400]);
+    
+    legend('X Velocity', 'Y Velocity', 'Z Velocity', 'Location', 'northeast');
+    
+    subplot(3,2,6); pause(.1);
+    BB = animatedline(etime(clock,runstart), double(xPos(4)), 'Color', [.196,.784,.235], 'LineWidth', 3);
+    CC = animatedline(etime(clock,runstart), double(zPos(4)), 'Color', [.804,.216,.765], 'LineWidth', 3);
+    DD = animatedline(etime(clock,runstart), double(yPos(4)), 'Color', [.962,.145,.342], 'LineWidth', 3);
+    %Create title
+    title({'Tip Acceleration'});
+    
+    %Create xlabel
+    xlabel({'Time(s)'});
+    %Limit X
+    xlim([0,10]);
+    
+    %Create ylabel
+    ylabel({'Acceleration(mm/sec^2)'}, 'Color', [.196,.784,.235]);
+    ylim([-600,600]);
+    
+    legend('X Acceleration', 'Y Acceleration', 'Z Acceleration', 'Location', 'northeast');
+    
+    traveltime = 0.01;
     
     for k = viaJts
         
@@ -216,19 +262,20 @@ try
         joint3TrajCoef = cubicTraj(0,traveltime,0,0,last(3),k(3));
         
         pidPacket = zeros(1, 15, 'single');
-
+        
         while(etime(clock,start)<traveltime)
-        %while(etime(clock,start)<traveltime)
-%             %joint 1 trajectory points
-%             J1 = posPoint(etime(clock,start), joint1TrajCoef(1,1), joint1TrajCoef(2,1), joint1TrajCoef(3,1), joint1TrajCoef(4,1));
-%             %joint 2 trajectory points
-%             J2 = posPoint(etime(clock,start), joint2TrajCoef(1,1), joint2TrajCoef(2,1), joint2TrajCoef(3,1), joint2TrajCoef(4,1));
-%             %joint 3 trajectory points
-%             J3 = posPoint(etime(clock,start), joint3TrajCoef(1,1), joint3TrajCoef(2,1), joint3TrajCoef(3,1), joint3TrajCoef(4,1));
-%             
-%             I = [J1;J2;J3];
+            %while(etime(clock,start)<traveltime)
+            %             %joint 1 trajectory points
+            %             J1 = posPoint(etime(clock,start), joint1TrajCoef(1,1), joint1TrajCoef(2,1), joint1TrajCoef(3,1), joint1TrajCoef(4,1));
+            %             %joint 2 trajectory points
+            %             J2 = posPoint(etime(clock,start), joint2TrajCoef(1,1), joint2TrajCoef(2,1), joint2TrajCoef(3,1), joint2TrajCoef(4,1));
+            %             %joint 3 trajectory points
+            %             J3 = posPoint(etime(clock,start), joint3TrajCoef(1,1), joint3TrajCoef(2,1), joint3TrajCoef(3,1), joint3TrajCoef(4,1));
+            %
+            %             I = [J1;J2;J3];
             
             %pidPacket(1:3) = [J1,J2,J3];
+            
             pidPacket(1:3) = k;
             
             pp.write(PID_SERV_ID, pidPacket);
@@ -236,13 +283,39 @@ try
             pidReturnPacket = pp.read(PID_SERV_ID);
             
             returnPacket = getStatus(pp, packet);
+            
+            prevTime = curTime;
             curTime = etime(clock, runstart);
             
-            updatePlotLab3(fig, tip, R, S, T, V, W, X, curTime, returnPacket);         
-
+            currentAngle = processStatus(returnPacket);
+            
+            pos= calcJointPos(currentAngle);
+            
+            prevXPos = xPos;
+            prevYPos = yPos;
+            prevZPos = zPos;
+            
+            xPos = pos(1,:);
+            yPos = pos(2,:);
+            zPos = pos(3,:);
+            
+            prevXVel = xVel;
+            prevYVel = yVel;
+            prevZVel = zVel;
+            
+            xVel = (xPos-prevXPos)/(curTime - prevTime);
+            yVel = (yPos-prevYPos)/(curTime - prevTime);
+            zVel = (zPos-prevZPos)/(curTime - prevTime);
+            
+            xAcc = (xVel - prevXVel)/(curTime - prevTime);
+            yAcc = (yVel - prevYVel)/(curTime - prevTime);
+            zAcc = (zVel - prevZVel)/(curTime - prevTime);
+            
+            updatePlotLab3(fig, tip, V, W, X, Y, Z, AA, BB, CC, DD, curTime, xPos, yPos, zPos, xVel, yVel, zVel, xAcc, yAcc, zAcc);
+            
             drawnow();
         end
-       
+        
     end
 catch exception
     getReport(exception)
