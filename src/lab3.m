@@ -83,22 +83,39 @@ try
     
     % Sets the position of the arm in task space
     
-    % Waypoints for tip in millimeters
-    viaPos = [[175;0;0],[45;-25;130], [50;25;120],[175;0;0]];
-    viaJtsAngles = zeros(3,12,3,'single');
+    % Waypoints to create a triangle with the tip in millimeters
+    %viaPos = [[180;0;25],[45;-25;130], [50;25;120],[180;0;25]];
     
-    for b = 1:3
-        viaPnts(:,:,b) = interpolate(viaPos(:,b), viaPos(:,b+1));
-    end
-    % The joint angles to which to send the arm
-    for c = 1:3
-        for d = 1:12
-            viaJtsAngles(:,d,c) = iKin(viaPnts(:,d,c));
-        end
-    end
-    viaJts = viaJtsAngles * 1024 / 90;
+    %Waypoints to create a "3" with the tip in millimeters
+    viaPos = [[175;10;10],[175;-35;35],[175;-35;60],[175;0;80],[175;-35;105],[175;-35;130],[175;10;150]];
     
-    previous = viaJts(:,1,1);
+    %Linear Interpolation
+    %viaJtsAngles = zeros(3,12,3,'single');
+    viaJtsAngles = zeros(size(viaPos));
+    
+    %Linear Interpolation
+%     for b = 1:3
+%         viaPnts(:,:,b) = interpolate(viaPos(:,b), viaPos(:,b+1));
+%     end
+%     % The joint angles to which to send the arm
+%     for c = 1:3
+%         for d = 1:12
+%             viaJtsAngles(:,d,c) = iKin(viaPnts(:,d,c));
+%         end
+%     end
+
+numPoints = size(viaJtsAngles);
+
+for a = 1:numPoints(2)
+    viaJtsAngles(:,a) = iKin(viaPos(:,a));
+end
+
+viaJts = viaJtsAngles * 1024 / 90;
+
+%Linear Interpolation
+    %previous = viaJts(:,1,1);
+    
+    previous = viaJts(:,1);
     
     returnPacket = getStatus(pp, packet);
     
@@ -173,7 +190,7 @@ try
     
     legend('X Acceleration', 'Y Acceleration', 'Z Acceleration', 'Location', 'northeast');
     
-    traveltime = .25;
+    traveltime = 1.5;
     
     for k = viaJts
         
@@ -185,7 +202,8 @@ try
         
         joint1TrajCoef = quintTraj(0,traveltime,0,0,last(1),k(1),0,0);
         joint2TrajCoef = quintTraj(0,traveltime,0,0,last(2),k(2),0,0);
-        joint3TrajCoef = quintTraj(0,traveltime,0,0,last(3),k(3),0,0);
+        joint3TrajCoef = quintTraj(0,traveltime,0,0,last(3),k(3),0,0);  
+        
         
         pidPacket = zeros(1, 15, 'single');
         
