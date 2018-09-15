@@ -98,7 +98,7 @@ try
     end
     viaJts = viaJtsAngles * 1024 / 90;
     
-    previous = [0;0;0];
+    previous = viaJts(:,1,1);
     
     returnPacket = getStatus(pp, packet);
     
@@ -117,8 +117,6 @@ try
     fig = createStickPlot(xPos, yPos, zPos);
     tip = animatedline(double(xPos(4)),double(yPos(4)),double(zPos(4)), 'Color', 'g','LineWidth',1.5);
     
-    previous = [0;0;0];
-    
     returnPacket = getStatus(pp, packet);
     
     subplot(3,2,2); pause(.1);
@@ -131,7 +129,7 @@ try
     %Create xlabel
     xlabel({'Time(s)'});
     %Limit X
-    xlim([0,10]);
+    xlim([0,20]);
     
     %Create ylabel
     ylabel({'Position(mm)'}, 'Color', [.196,.784,.235]);
@@ -149,7 +147,7 @@ try
     %Create xlabel
     xlabel({'Time(s)'});
     %Limit X
-    xlim([0,10]);
+    xlim([0,20]);
     
     %Create ylabel
     ylabel({'Velocity(mm/sec)'}, 'Color', [.196,.784,.235]);
@@ -167,7 +165,7 @@ try
     %Create xlabel
     xlabel({'Time(s)'});
     %Limit X
-    xlim([0,10]);
+    xlim([0,20]);
     
     %Create ylabel
     ylabel({'Acceleration(mm/sec^2)'}, 'Color', [.196,.784,.235]);
@@ -175,7 +173,7 @@ try
     
     legend('X Acceleration', 'Y Acceleration', 'Z Acceleration', 'Location', 'northeast');
     
-    traveltime = 0.005;
+    traveltime = .25;
     
     for k = viaJts
         
