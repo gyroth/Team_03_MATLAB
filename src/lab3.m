@@ -3,10 +3,11 @@
 %
 %
 % ------------
-% This MATLAB script creates a live stick model plot of the robotic arm for
-% lab 2 of RBE3001. The code below also uses a cubic trajectory function to plot points between
-% four assigned points oriented in the X,Z plane. It also creates plots of the joint positions and velocities while
-% tracing the tip of the robot on the stick plot.
+% This MATLAB script creates a live stick model plot of the robotic arm and keeps
+% track of the position, velocity, and acceleration of the tip. The code
+% below has the robot moving its tip between given points using trajectory
+% generation.
+%
 %
 %
 clear
@@ -84,20 +85,8 @@ try
     %Waypoints to create a "3" with the tip in millimeters
     %viaPos = [[175;10;10],[175;-35;35],[175;-35;60],[175;0;80],[175;-35;105],[175;-35;130],[175;10;150]];
     
-    %Linear Interpolation
-    %viaJtsAngles = zeros(3,12,3,'single');
     viaJtsAngles = zeros(size(viaPos));
     
-    %Linear Interpolation
-%     for b = 1:3
-%         viaPnts(:,:,b) = interpolate(viaPos(:,b), viaPos(:,b+1));
-%     end
-%     % The joint angles to which to send the arm
-%     for c = 1:3
-%         for d = 1:12
-%             viaJtsAngles(:,d,c) = iKin(viaPnts(:,d,c));
-%         end
-%     end
 
 numPoints = size(viaJtsAngles);
 
@@ -106,9 +95,6 @@ for a = 1:numPoints(2)
 end
 
 viaJts = viaJtsAngles * 1024 / 90;
-
-%Linear Interpolation
-    %previous = viaJts(:,1,1);
     
     previous = viaJts(:,1);
     
@@ -125,12 +111,14 @@ viaJts = viaJtsAngles * 1024 / 90;
     yPos = pos(2,:);
     zPos = pos(3,:);
     
+    %Creates the stickplot model of the arm
     subplot(3,2,[1,3]);
     fig = createStickPlot(xPos, yPos, zPos);
     tip = animatedline(double(xPos(4)),double(yPos(4)),double(zPos(4)), 'Color', 'g','LineWidth',1.5);
     
     returnPacket = getStatus(pp, packet);
     
+    %Creates a plot for the positions of the tip
     subplot(3,2,2); pause(.1);
     V = animatedline(etime(clock,runstart), double(xPos(4)), 'Color', [.196,.784,.235], 'LineWidth', 3);
     W = animatedline(etime(clock,runstart), double(zPos(4)), 'Color', [.804,.216,.765], 'LineWidth', 3);
@@ -149,6 +137,7 @@ viaJts = viaJtsAngles * 1024 / 90;
     
     legend('X Position', 'Y Position', 'Z Position', 'Location', 'northeast');
     
+    %Creates a plot for the velocities of the tip
     subplot(3,2,4); pause(.1);
     Y = animatedline(etime(clock,runstart), double(xPos(4)), 'Color', [.196,.784,.235], 'LineWidth', 3);
     Z = animatedline(etime(clock,runstart), double(zPos(4)), 'Color', [.804,.216,.765], 'LineWidth', 3);
@@ -167,6 +156,7 @@ viaJts = viaJtsAngles * 1024 / 90;
     
     legend('X Velocity', 'Y Velocity', 'Z Velocity', 'Location', 'northeast');
     
+    %Creates a plot of the accelerations of the tip
     subplot(3,2,6); pause(.1);
     BB = animatedline(etime(clock,runstart), double(xPos(4)), 'Color', [.196,.784,.235], 'LineWidth', 3);
     CC = animatedline(etime(clock,runstart), double(zPos(4)), 'Color', [.804,.216,.765], 'LineWidth', 3);
@@ -187,6 +177,9 @@ viaJts = viaJtsAngles * 1024 / 90;
     
     traveltime = 1.5;
     
+    %Cycles through each point and moves the tip to the desired position
+    %using trajectory generation. While moving, the program calls update
+    %plot to make changes to the plots.
     for k = viaJts
         
         last = previous;
@@ -202,14 +195,7 @@ viaJts = viaJtsAngles * 1024 / 90;
         
         pidPacket = zeros(1, 15, 'single');
         
-        while(etime(clock,start)<traveltime)
-%             %joint 1 trajectory points
-%             J1 = posPoint(etime(clock,start), joint1TrajCoef(1,1), joint1TrajCoef(2,1), joint1TrajCoef(3,1), joint1TrajCoef(4,1));
-%             %joint 2 trajectory points
-%             J2 = posPoint(etime(clock,start), joint2TrajCoef(1,1), joint2TrajCoef(2,1), joint2TrajCoef(3,1), joint2TrajCoef(4,1));
-%             %joint 3 trajectory points
-%             J3 = posPoint(etime(clock,start), joint3TrajCoef(1,1), joint3TrajCoef(2,1), joint3TrajCoef(3,1), joint3TrajCoef(4,1));          
-            
+        while(etime(clock,start)<traveltime)     
             %joint 1 trajectory points
             J1 = quintPoint(etime(clock,start), joint1TrajCoef(1,1), joint1TrajCoef(2,1), joint1TrajCoef(3,1), joint1TrajCoef(4,1), joint1TrajCoef(5,1), joint1TrajCoef(6,1));
             %joint 2 trajectory points

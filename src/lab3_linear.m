@@ -3,10 +3,10 @@
 %
 %
 % ------------
-% This MATLAB script creates a live stick model plot of the robotic arm for
-% lab 2 of RBE3001. The code below also uses a cubic trajectory function to plot points between
-% four assigned points oriented in the X,Z plane. It also creates plots of the joint positions and velocities while
-% tracing the tip of the robot on the stick plot.
+% This MATLAB script creates a live stick model plot of the robotic arm and keeps
+% track of the position, velocity, and acceleration of the tip. The code
+% below has the robot moving its tip between given points using linear
+% interpolation.
 %
 %
 clear
@@ -87,9 +87,6 @@ try
     %Linear Interpolation
     viaJtsAngles = zeros(3,12,3,'single');
     
-    %Traj Gen
-    %viaJtsAngles = zeros(size(viaPos));
-    
     %Linear Interpolation
     for b = 1:3
         viaPnts(:,:,b) = interpolate(viaPos(:,b), viaPos(:,b+1));
@@ -101,20 +98,10 @@ try
         end
     end
 
-% Traj Gen
-% numPoints = size(viaJtsAngles);
-% 
-% for a = 1:numPoints(2)
-%     viaJtsAngles(:,a) = iKin(viaPos(:,a));
-% end
-
 viaJts = viaJtsAngles * 1024 / 90;
 
 %Linear Interpolation
     previous = viaJts(:,1,1);
-    
-    %Traj Gen
-    %previous = viaJts(:,1);
     
     returnPacket = getStatus(pp, packet);
     
@@ -203,9 +190,12 @@ viaJts = viaJtsAngles * 1024 / 90;
         joint2TrajCoef = quintTraj(0,traveltime,0,0,last(2),k(2),0,0);
         joint3TrajCoef = quintTraj(0,traveltime,0,0,last(3),k(3),0,0);  
         
-        
         pidPacket = zeros(1, 15, 'single');
         
+        
+        %Cycles through each point and moves the tip to the desired position
+        %using linear interpolation. While moving, the program calls update
+        %plot to make changes to the plots.
         while(etime(clock,start)<traveltime)
 
             %joint 1 trajectory points

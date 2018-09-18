@@ -3,10 +3,8 @@
 %
 % 
 % ------------
-% This MATLAB script creates a live stick model plot of the robotic arm for
-% lab 2 of RBE3001. The code below also uses a cubic trajectory function to plot points between
-% four assigned points oriented in the X,Z plane. It also creates plots of the joint positions and velocities while 
-% tracing the tip of the robot on the stick plot.
+% This MATLAB script is optimized to check the speed of the coonnection
+% between Matlab and Nucleo
 %
 % 
 clear
