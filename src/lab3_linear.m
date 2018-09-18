@@ -85,32 +85,36 @@ try
     %viaPos = [[175;10;10],[175;-35;35],[175;-35;60],[175;0;80],[175;-35;105],[175;-35;130],[175;10;150]];
     
     %Linear Interpolation
-    %viaJtsAngles = zeros(3,12,3,'single');
-    viaJtsAngles = zeros(size(viaPos));
+    viaJtsAngles = zeros(3,12,3,'single');
+    
+    %Traj Gen
+    %viaJtsAngles = zeros(size(viaPos));
     
     %Linear Interpolation
-%     for b = 1:3
-%         viaPnts(:,:,b) = interpolate(viaPos(:,b), viaPos(:,b+1));
-%     end
-%     % The joint angles to which to send the arm
-%     for c = 1:3
-%         for d = 1:12
-%             viaJtsAngles(:,d,c) = iKin(viaPnts(:,d,c));
-%         end
-%     end
+    for b = 1:3
+        viaPnts(:,:,b) = interpolate(viaPos(:,b), viaPos(:,b+1));
+    end
+    % The joint angles to which to send the arm
+    for c = 1:3
+        for d = 1:12
+            viaJtsAngles(:,d,c) = iKin(viaPnts(:,d,c));
+        end
+    end
 
-numPoints = size(viaJtsAngles);
-
-for a = 1:numPoints(2)
-    viaJtsAngles(:,a) = iKin(viaPos(:,a));
-end
+% Traj Gen
+% numPoints = size(viaJtsAngles);
+% 
+% for a = 1:numPoints(2)
+%     viaJtsAngles(:,a) = iKin(viaPos(:,a));
+% end
 
 viaJts = viaJtsAngles * 1024 / 90;
 
 %Linear Interpolation
-    %previous = viaJts(:,1,1);
+    previous = viaJts(:,1,1);
     
-    previous = viaJts(:,1);
+    %Traj Gen
+    %previous = viaJts(:,1);
     
     returnPacket = getStatus(pp, packet);
     
@@ -141,7 +145,7 @@ viaJts = viaJtsAngles * 1024 / 90;
     %Create xlabel
     xlabel({'Time(s)'});
     %Limit X
-    xlim([0,10]);
+    xlim([0,20]);
     
     %Create ylabel
     ylabel({'Position(mm)'}, 'Color', [.196,.784,.235]);
@@ -159,7 +163,7 @@ viaJts = viaJtsAngles * 1024 / 90;
     %Create xlabel
     xlabel({'Time(s)'});
     %Limit X
-    xlim([0,10]);
+    xlim([0,20]);
     
     %Create ylabel
     ylabel({'Velocity(mm/sec)'}, 'Color', [.196,.784,.235]);
@@ -177,7 +181,7 @@ viaJts = viaJtsAngles * 1024 / 90;
     %Create xlabel
     xlabel({'Time(s)'});
     %Limit X
-    xlim([0,10]);
+    xlim([0,20]);
     
     %Create ylabel
     ylabel({'Acceleration(mm/sec^2)'}, 'Color', [.196,.784,.235]);
@@ -185,7 +189,7 @@ viaJts = viaJtsAngles * 1024 / 90;
     
     legend('X Acceleration', 'Y Acceleration', 'Z Acceleration', 'Location', 'northeast');
     
-    traveltime = 1.5;
+    traveltime = .5;
     
     for k = viaJts
         
@@ -203,13 +207,7 @@ viaJts = viaJtsAngles * 1024 / 90;
         pidPacket = zeros(1, 15, 'single');
         
         while(etime(clock,start)<traveltime)
-%             %joint 1 trajectory points
-%             J1 = posPoint(etime(clock,start), joint1TrajCoef(1,1), joint1TrajCoef(2,1), joint1TrajCoef(3,1), joint1TrajCoef(4,1));
-%             %joint 2 trajectory points
-%             J2 = posPoint(etime(clock,start), joint2TrajCoef(1,1), joint2TrajCoef(2,1), joint2TrajCoef(3,1), joint2TrajCoef(4,1));
-%             %joint 3 trajectory points
-%             J3 = posPoint(etime(clock,start), joint3TrajCoef(1,1), joint3TrajCoef(2,1), joint3TrajCoef(3,1), joint3TrajCoef(4,1));          
-            
+
             %joint 1 trajectory points
             J1 = quintPoint(etime(clock,start), joint1TrajCoef(1,1), joint1TrajCoef(2,1), joint1TrajCoef(3,1), joint1TrajCoef(4,1), joint1TrajCoef(5,1), joint1TrajCoef(6,1));
             %joint 2 trajectory points
@@ -219,9 +217,9 @@ viaJts = viaJtsAngles * 1024 / 90;
             
             %I = [J1;J2;J3];
             
-            pidPacket(1:3) = [J1,J2,J3];
+            %pidPacket(1:3) = [J1,J2,J3];
             
-            %pidPacket(1:3) = k;
+            pidPacket(1:3) = k;
             
             pp.write(PID_SERV_ID, pidPacket);
             pause(.004);
