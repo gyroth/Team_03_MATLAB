@@ -222,6 +222,9 @@ viaJts = viaJtsAngles * 1024 / 90;
             
             pos= calcJointPos(currentAngle);
             
+            % Calculates velocity and acceleration using changes in
+            % position
+            
             prevXPos = xPos;
             prevYPos = yPos;
             prevZPos = zPos;
