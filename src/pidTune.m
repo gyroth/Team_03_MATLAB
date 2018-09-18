@@ -1,5 +1,5 @@
 %%
-% RBE3001 - Laboratory 1
+% RBE3001 - PID Tune
 %
 % Instructions
 % ------------

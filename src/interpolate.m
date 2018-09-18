@@ -1,5 +1,6 @@
 function outputArg = interpolate(pos1, pos2)
-
+    %Interpolate 10 equally spaced points along the line between 2 points
+    %Then places every point into a matrix
     vect=[pos2(1)-pos1(1); pos2(2)-pos1(2); pos2(3)-pos1(3)];
     
     i=2;
