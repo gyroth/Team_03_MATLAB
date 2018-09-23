@@ -57,19 +57,17 @@ try
     returnPacket = getStatus(pp, packet);
     calibrate(pp,packet);
     % Sets the received packet into a 1x3 matrix of joint angles
-    %  while(1)
-    %     returnPacket = getStatus(pp,packet);
-    %     currentAngle = processStatus(returnPacket);
-    %
-    %     runstart = clock;
-    %     %changes degrees to angles
-    %
-    %     J = jacob0([0;90;90]);
-    %
-    %     determ = det(J(1:3,:));
-    %     disp('Determinant')
-    %     disp(determ)
-    %  end
+
+         returnPacket = getStatus(pp,packet);
+         currentAngle = processStatus(returnPacket);
+    
+         runstart = clock;
+         %changes degrees to angles
+    
+         J = jacob0([0;90;90]);
+    
+         determ = det(J(1:3,:));
+    
     pos= calcJointPos(currentAngle);
     
     xPos = zeros(3,1,'single');
@@ -111,8 +109,6 @@ try
     % Sets the received packet into a 3x3 matrix
     currentAngle = processStatus(returnPacket);
     currentVel = processStatusVel(returnPacket);
-    %disp('return Pack')
-    %disp(returnPacket)
     
     pos= calcJointPos(currentAngle);
     
@@ -127,8 +123,10 @@ try
     %Creates the stickplot model of the arm
     subplot(3,2,[1,3]);
     fig = createStickPlot(xPos, yPos, zPos);
+    hold on
+    quiv.handle = quiver3(double(xPos(4)),double(yPos(4)),double(zPos(4)),xVelo, yVelo, zVelo, 'LineWidth', 1.5, 'MaxHeadSize', 0.5);
     tip = animatedline(double(xPos(4)),double(yPos(4)),double(zPos(4)), 'Color', 'g','LineWidth',1.5);
-    vel = quiver3(double(xPos(4)),double(yPos(4)),double(zPos(4)),xVelo, yVelo, zVelo);
+    hold off
     
     returnPacket = getStatus(pp, packet);
     
@@ -248,9 +246,7 @@ try
             yPos = pos(2,:);
             zPos = pos(3,:);
             
-            xVelo = currentVel(1);
-            yVelo = currentVel(2);
-            zVelo = currentVel(3);
+            tVel = fwdVelKin(currentAngle,currentVel);
             
             prevXVel = xVel;
             prevYVel = yVel;
@@ -264,7 +260,8 @@ try
             yAcc = (yVel - prevYVel)/(curTime - prevTime);
             zAcc = (zVel - prevZVel)/(curTime - prevTime);
             
-            updatePlotLab4(fig, tip, V, W, X, Y, Z, AA, BB, CC, DD, curTime, xPos, yPos, zPos, xVel, yVel, zVel, xAcc, yAcc, zAcc, xVelo, yVelo, zVelo);
+            updatePlotLab4(fig, tip, quiv, V, W, X, Y, Z, AA, BB, CC, DD, curTime, xPos, yPos, zPos, xVel, yVel, zVel, xAcc, yAcc, zAcc, tVel);
+            %updatePlotLab3(fig, tip, V, W, X, Y, Z, AA, BB, CC, DD, curTime, xPos, yPos, zPos, xVel, yVel, zVel, xAcc, yAcc, zAcc);
             
             drawnow();
         end

@@ -13,7 +13,6 @@ R.handle= plot3(xPos,yPos,zPos,'DisplayName','Robot Links','MarkerFaceColor',[1 
     ylim([-350, 350]);
     zlim([-75, 500]);
     
-    
     % Create xlabel
     xlabel({'X-Distance(mm)'});
     
