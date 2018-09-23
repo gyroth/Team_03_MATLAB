@@ -1,5 +1,5 @@
 %%
-% RBE3001 - Laboratory 4
+% RBE3001 - Laboratory 3
 %
 %
 % ------------
@@ -46,23 +46,30 @@ kD3 = .009;
 
 try
     packet = zeros(15, 1, 'single');
-    
-    PID_SERV_ID = 37;  
+    PID_SERV_ID = 37;
     
     pidVal = [kP1, kI1, kD1; ...
         kP2, kI2, kD2; ...
         kP3, kI3, kD3];
+    
     setPIDConstants(pp, pidVal);
     
     returnPacket = getStatus(pp, packet);
     calibrate(pp,packet);
-    
-    % Sets the received packet into a 3x3 matrix
-    currentAngle = processStatus(returnPacket);
-    %     disp('return Pack')
-    %     disp(returnPacket)
-    runstart = clock;
-     
+    % Sets the received packet into a 1x3 matrix of joint angles
+    %  while(1)
+    %     returnPacket = getStatus(pp,packet);
+    %     currentAngle = processStatus(returnPacket);
+    %
+    %     runstart = clock;
+    %     %changes degrees to angles
+    %
+    %     J = jacob0([0;90;90]);
+    %
+    %     determ = det(J(1:3,:));
+    %     disp('Determinant')
+    %     disp(determ)
+    %  end
     pos= calcJointPos(currentAngle);
     
     xPos = zeros(3,1,'single');
@@ -88,14 +95,14 @@ try
     
     viaJtsAngles = zeros(size(viaPos));
     
-
-numPoints = size(viaJtsAngles);
-
-for a = 1:numPoints(2)
-    viaJtsAngles(:,a) = iKin(viaPos(:,a));
-end
-
-viaJts = viaJtsAngles * 1024 / 90;
+    
+    numPoints = size(viaJtsAngles);
+    
+    for a = 1:numPoints(2)
+        viaJtsAngles(:,a) = iKin(viaPos(:,a));
+    end
+    
+    viaJts = viaJtsAngles * 1024 / 90;
     
     previous = viaJts(:,1);
     
@@ -103,10 +110,15 @@ viaJts = viaJtsAngles * 1024 / 90;
     
     % Sets the received packet into a 3x3 matrix
     currentAngle = processStatus(returnPacket);
+    currentVel = processStatusVel(returnPacket);
     %disp('return Pack')
     %disp(returnPacket)
     
     pos= calcJointPos(currentAngle);
+    
+    xVelo = currentVel(1);
+    yVelo = currentVel(2);
+    zVelo = currentVel(3);
     
     xPos = pos(1,:);
     yPos = pos(2,:);
@@ -116,6 +128,7 @@ viaJts = viaJtsAngles * 1024 / 90;
     subplot(3,2,[1,3]);
     fig = createStickPlot(xPos, yPos, zPos);
     tip = animatedline(double(xPos(4)),double(yPos(4)),double(zPos(4)), 'Color', 'g','LineWidth',1.5);
+    vel = quiver3(double(xPos(4)),double(yPos(4)),double(zPos(4)),xVelo, yVelo, zVelo);
     
     returnPacket = getStatus(pp, packet);
     
@@ -191,18 +204,18 @@ viaJts = viaJtsAngles * 1024 / 90;
         
         joint1TrajCoef = quintTraj(0,traveltime,0,0,last(1),k(1),0,0);
         joint2TrajCoef = quintTraj(0,traveltime,0,0,last(2),k(2),0,0);
-        joint3TrajCoef = quintTraj(0,traveltime,0,0,last(3),k(3),0,0);  
+        joint3TrajCoef = quintTraj(0,traveltime,0,0,last(3),k(3),0,0);
         
         
         pidPacket = zeros(1, 15, 'single');
         
-        while(etime(clock,start)<traveltime)     
+        while(etime(clock,start)<traveltime)
             %joint 1 trajectory points
             J1 = quintPoint(etime(clock,start), joint1TrajCoef(1,1), joint1TrajCoef(2,1), joint1TrajCoef(3,1), joint1TrajCoef(4,1), joint1TrajCoef(5,1), joint1TrajCoef(6,1));
             %joint 2 trajectory points
             J2 = quintPoint(etime(clock,start), joint2TrajCoef(1,1), joint2TrajCoef(2,1), joint2TrajCoef(3,1), joint2TrajCoef(4,1), joint2TrajCoef(5,1), joint2TrajCoef(6,1));
             %joint 3 trajectory points
-            J3 = quintPoint(etime(clock,start), joint3TrajCoef(1,1), joint3TrajCoef(2,1), joint3TrajCoef(3,1), joint3TrajCoef(4,1), joint3TrajCoef(5,1), joint3TrajCoef(6,1));          
+            J3 = quintPoint(etime(clock,start), joint3TrajCoef(1,1), joint3TrajCoef(2,1), joint3TrajCoef(3,1), joint3TrajCoef(4,1), joint3TrajCoef(5,1), joint3TrajCoef(6,1));
             
             %I = [J1;J2;J3];
             
@@ -220,6 +233,7 @@ viaJts = viaJtsAngles * 1024 / 90;
             curTime = etime(clock, runstart);
             
             currentAngle = processStatus(returnPacket);
+            currentVel  = processStatusVel(returnPacket);
             
             pos= calcJointPos(currentAngle);
             
@@ -234,6 +248,10 @@ viaJts = viaJtsAngles * 1024 / 90;
             yPos = pos(2,:);
             zPos = pos(3,:);
             
+            xVelo = currentVel(1);
+            yVelo = currentVel(2);
+            zVelo = currentVel(3);
+            
             prevXVel = xVel;
             prevYVel = yVel;
             prevZVel = zVel;
@@ -246,7 +264,7 @@ viaJts = viaJtsAngles * 1024 / 90;
             yAcc = (yVel - prevYVel)/(curTime - prevTime);
             zAcc = (zVel - prevZVel)/(curTime - prevTime);
             
-            updatePlotLab3(fig, tip, V, W, X, Y, Z, AA, BB, CC, DD, curTime, xPos, yPos, zPos, xVel, yVel, zVel, xAcc, yAcc, zAcc);
+            updatePlotLab4(fig, tip, V, W, X, Y, Z, AA, BB, CC, DD, curTime, xPos, yPos, zPos, xVel, yVel, zVel, xAcc, yAcc, zAcc, xVelo, yVelo, zVelo);
             
             drawnow();
         end
