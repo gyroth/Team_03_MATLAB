@@ -52,6 +52,7 @@ try
         kP2, kI2, kD2; ...
         kP3, kI3, kD3];
     
+    
     setPIDConstants(pp, pidVal);
     
     returnPacket = getStatus(pp, packet);
@@ -207,7 +208,11 @@ try
         
         pidPacket = zeros(1, 15, 'single');
         
-        while(etime(clock,start)<traveltime)
+        %while(~reachedSetpoint(pos(:,4),k))
+         while(etime(clock,start)<traveltime)
+            disp('pos')
+            disp(pos)
+            %disp(k)
             %joint 1 trajectory points
             J1 = quintPoint(etime(clock,start), joint1TrajCoef(1,1), joint1TrajCoef(2,1), joint1TrajCoef(3,1), joint1TrajCoef(4,1), joint1TrajCoef(5,1), joint1TrajCoef(6,1));
             %joint 2 trajectory points
@@ -261,8 +266,7 @@ try
             zAcc = (zVel - prevZVel)/(curTime - prevTime);
             
             updatePlotLab4(fig, tip, quiv, V, W, X, Y, Z, AA, BB, CC, DD, curTime, xPos, yPos, zPos, xVel, yVel, zVel, xAcc, yAcc, zAcc, tVel);
-            %updatePlotLab3(fig, tip, V, W, X, Y, Z, AA, BB, CC, DD, curTime, xPos, yPos, zPos, xVel, yVel, zVel, xAcc, yAcc, zAcc);
-            
+           
             drawnow();
         end
         
