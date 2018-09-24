@@ -52,22 +52,17 @@ try
         kP2, kI2, kD2; ...
         kP3, kI3, kD3];
     
-    
     setPIDConstants(pp, pidVal);
     
     returnPacket = getStatus(pp, packet);
     calibrate(pp,packet);
     % Sets the received packet into a 1x3 matrix of joint angles
-
-         returnPacket = getStatus(pp,packet);
-         currentAngle = processStatus(returnPacket);
     
-         runstart = clock;
-         %changes degrees to angles
+    returnPacket = getStatus(pp,packet);
+    currentAngle = processStatus(returnPacket);
     
-         J = jacob0([0;90;90]);
-    
-         determ = det(J(1:3,:));
+    runstart = clock;
+    %changes degrees to angles
     
     pos= calcJointPos(currentAngle);
     
@@ -86,21 +81,25 @@ try
     
     %% Sets the position of the arm in task space
     
-    % Waypoints to create a triangle with the tip in millimeters
-    viaPos = [[180;0;25],[45;-25;130], [50;25;120],[180;0;25]];
+    % Waypoints in task space to create a triangle with the tip in millimeters
+    viaPos = [[180;0;25],[180;-55;130], [180;55;120],[180;0;25]];
     
-    %Waypoints to create a "3" with the tip in millimeters
+    % Waypoints to create a "3" with the tip in millimeters
     %viaPos = [[175;10;10],[175;-35;35],[175;-35;60],[175;0;80],[175;-35;105],[175;-35;130],[175;10;150]];
     
+    % Sets the desired travel velocities in task space for a downward
+    % motion
+    desVel = [0;0;5];
+    
     viaJtsAngles = zeros(size(viaPos));
-    
-    
+        
     numPoints = size(viaJtsAngles);
     
     for a = 1:numPoints(2)
         viaJtsAngles(:,a) = iKin(viaPos(:,a));
     end
     
+    % Joint Angles in Ticks at each Setpoint
     viaJts = viaJtsAngles * 1024 / 90;
     
     previous = viaJts(:,1);
@@ -125,7 +124,7 @@ try
     subplot(3,2,[1,3]);
     fig = createStickPlot(xPos, yPos, zPos);
     hold on
-    quiv.handle = quiver3(double(xPos(4)),double(yPos(4)),double(zPos(4)),xVelo, yVelo, zVelo, 'LineWidth', 1.5, 'MaxHeadSize', 0.5);
+    quiv.handle = quiver3(double(xPos(4)),double(yPos(4)),double(zPos(4)),xVelo, yVelo, zVelo, 'LineWidth', 1.5, 'MaxHeadSize', 0.5, 'AutoScaleFactor', 0.04);
     tip = animatedline(double(xPos(4)),double(yPos(4)),double(zPos(4)), 'Color', 'g','LineWidth',1.5);
     hold off
     
@@ -208,8 +207,8 @@ try
         
         pidPacket = zeros(1, 15, 'single');
         
-        %while(~reachedSetpoint(pos(:,4),k))
-         while(etime(clock,start)<traveltime)
+        while(~reachedSetpoint(pos(:,4),k))
+         %while(etime(clock,start)<traveltime)
             disp('pos')
             disp(pos)
             %disp(k)
