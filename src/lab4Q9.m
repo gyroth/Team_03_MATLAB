@@ -130,67 +130,6 @@ try
     
     returnPacket = getStatus(pp, packet);
     
-    magnitudeV = sqrt(power(double(xPos(4)),2)+power(double(yPos(4)),2)+power(double(zPos(4)),2));
-    %Creates a plot of the magnitude of the tip velocity
-    subplot(3,2,4); pause(.1);
-    V = animatedline(etime(clock,runstart), magnitudeV, 'Color', [.196,.784,.235], 'LineWidth', 3);
-    %Create title
-    title({'Tip Velocity Magnitude'});
-    
-    %Create xlabel
-    xlabel({'Time(s)'});
-    
-    %Limit X
-    xlim([0,25]);
-    
-    %Create ylabel
-    ylabel({'Velocity(mm/s)'}, 'Color', [.196,.784,.235]);
-    ylim([-400,400]);
-    
-    legend('Tip Magnitude', 'Location', 'northeast');
-    
-    %Creates a plot of the joint velocities of the arm
-    subplot(3,2,6)
-    W = animatedline(etime(clock,runstart), double(xVelo), 'Color', [.804,.216,.765], 'LineWidth',3);
-    X =animatedline(etime(clock,runstart), double(yVelo), 'Color', [.196,.784,.235], 'LineWidth', 3);
-    Y = animatedline(etime(clock,runstart), double(zVelo), 'Color', [.962,.145,.342], 'LineWidth', 3);
-    %Create title
-    title({'Joint Velocities'});
-    %Create xlabel
-    xlabel({'Time(s)'});
-    
-    %Limit X
-    xlim([0,25]);
-    
-    %Create ylabel
-    ylabel({'Velocities(deg/s)'}, 'Color', [.196,.784,.235]);
-    ylim([-400,400]);
-    
-    legend('Joint 1', 'Joint 2', 'Joint 3', 'Location', 'northeast');
-    
-    %Creates a plot for the velocities of the tip (Cartesian Velocity)
-    subplot(3,2,2); pause(.1);
-    %X Velocity
-    BB = animatedline(etime(clock,runstart), double(xPos(4)), 'Color', [.196,.784,.235], 'LineWidth', 3);
-    %Y Velocity
-    Z = animatedline(etime(clock,runstart), double(zPos(4)), 'Color', [.804,.216,.765], 'LineWidth', 3);
-    %Z Velocity
-    AA = animatedline(etime(clock,runstart), double(yPos(4)), 'Color', [.962,.145,.342], 'LineWidth', 3);
-    
-    %Create title
-    title({'Tip Velocity'});
-    
-    %Create xlabel
-    xlabel({'Time(s)'});
-    %Limit X
-    xlim([0,25]);
-    
-    %Create ylabel
-    ylabel({'Velocity(mm/sec)'}, 'Color', [.196,.784,.235]);
-    ylim([-400,400]);
-    
-    legend('X Velocity', 'Y Velocity', 'Z Velocity', 'Location', 'northeast');
-    
     
     %     %Create ylabel xVelo = currentVel(1);
     yVelo = currentVel(2);

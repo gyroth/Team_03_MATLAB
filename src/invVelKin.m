@@ -1,11 +1,12 @@
 function [ desJointVel ] = invVelKin( curAng, desTVel )
-%fwdVelKin: Uses the current joint angles and the instantaneous joint
+%invVelKin: Uses the current joint angles and the instantaneous joint
 %velocities to calculate the desired joint velocities
 
-disp(curAng)
-jaco = jacob0(curAng)
+jaco = jacob0(curAng);
 
-desJointVel = inv(jaco(1:3,:)) * desTVel;
+inverse = inv(jaco(1:3,:));
+
+desJointVel = rad2deg(inverse * desTVel);
 
 
 end
