@@ -11,6 +11,7 @@
 %
 %
 clear
+clc
 clear java %#ok<CLJAVA>
 %clear import;
 clear classes; %#ok<CLCLS>
@@ -89,7 +90,7 @@ try
     
     % Sets the desired travel velocities in task space for a downward
     % motion
-    desVel = [0;0;5];
+    desVel = 1000;
     
     viaJtsAngles = zeros(size(viaPos));
         
@@ -193,41 +194,36 @@ try
     %using trajectory generation. While moving, the program calls update
     %plot to make changes to the plots.
     for k = viaJts
+                
+        kAng = k * 90/1024;
+        kXYZ = calcJointPos(kAng);
         
         last = previous;
         
         previous = k;
-        
+             
         start = clock;
         
-        joint1TrajCoef = quintTraj(0,traveltime,0,0,last(1),k(1),0,0);
-        joint2TrajCoef = quintTraj(0,traveltime,0,0,last(2),k(2),0,0);
-        joint3TrajCoef = quintTraj(0,traveltime,0,0,last(3),k(3),0,0);
-        
+%         joint1TrajCoef = quintTraj(0,traveltime,0,0,last(1),k(1),0,0);
+%         joint2TrajCoef = quintTraj(0,traveltime,0,0,last(2),k(2),0,0);
+%         joint3TrajCoef = quintTraj(0,traveltime,0,0,last(3),k(3),0,0);
         
         pidPacket = zeros(1, 15, 'single');
         
+        loopStartTime = clock;
         while(~reachedSetpoint(pos(:,4),k))
          %while(etime(clock,start)<traveltime)
-            disp('pos')
-            disp(pos)
-            %disp(k)
-            %joint 1 trajectory points
-            J1 = quintPoint(etime(clock,start), joint1TrajCoef(1,1), joint1TrajCoef(2,1), joint1TrajCoef(3,1), joint1TrajCoef(4,1), joint1TrajCoef(5,1), joint1TrajCoef(6,1));
-            %joint 2 trajectory points
-            J2 = quintPoint(etime(clock,start), joint2TrajCoef(1,1), joint2TrajCoef(2,1), joint2TrajCoef(3,1), joint2TrajCoef(4,1), joint2TrajCoef(5,1), joint2TrajCoef(6,1));
-            %joint 3 trajectory points
-            J3 = quintPoint(etime(clock,start), joint3TrajCoef(1,1), joint3TrajCoef(2,1), joint3TrajCoef(3,1), joint3TrajCoef(4,1), joint3TrajCoef(5,1), joint3TrajCoef(6,1));
-            
-            %I = [J1;J2;J3];
-            
-            pidPacket(1:3) = [J1,J2,J3];
-            
-            %pidPacket(1:3) = k;
-            
-            pp.write(PID_SERV_ID, pidPacket);
-            pause(.004);
-            pidReturnPacket = pp.read(PID_SERV_ID);
+           
+%             %joint 1 trajectory points
+%             J1 = quintPoint(etime(clock,start), joint1TrajCoef(1,1), joint1TrajCoef(2,1), joint1TrajCoef(3,1), joint1TrajCoef(4,1), joint1TrajCoef(5,1), joint1TrajCoef(6,1));
+%             %joint 2 trajectory points
+%             J2 = quintPoint(etime(clock,start), joint2TrajCoef(1,1), joint2TrajCoef(2,1), joint2TrajCoef(3,1), joint2TrajCoef(4,1), joint2TrajCoef(5,1), joint2TrajCoef(6,1));
+%             %joint 3 trajectory points
+%             J3 = quintPoint(etime(clock,start), joint3TrajCoef(1,1), joint3TrajCoef(2,1), joint3TrajCoef(3,1), joint3TrajCoef(4,1), joint3TrajCoef(5,1), joint3TrajCoef(6,1));
+%             
+%             %I = [J1;J2;J3];
+%             
+%             pidPacket(1:3) = [J1,J2,J3];          
             
             returnPacket = getStatus(pp, packet);
             
@@ -237,7 +233,24 @@ try
             currentAngle = processStatus(returnPacket);
             currentVel  = processStatusVel(returnPacket);
             
-            pos= calcJointPos(currentAngle);
+            pos= calcJointPos(currentAngle)
+            
+            velVec = calcVelVec(pos(:,4),kXYZ(:,4),desVel);
+            
+            disp("KXYZ")
+            disp(kXYZ)
+            
+            %Inverse Velocity Kinematics: returns joint velocities
+            jVel = invVelKin(currentAngle,velVec);
+            
+            loopEndTime = clock;
+            jAng = jVel*abs(etime(loopEndTime,loopStartTime));
+            loopStartTime = clock;
+            
+            pidPacket = (jAng'+currentAngle)*1024/90;
+            pp.write(PID_SERV_ID, pidPacket);
+            pause(.004);
+            pidReturnPacket = pp.read(PID_SERV_ID);
             
             % Calculates velocity and acceleration using changes in
             % position
@@ -265,7 +278,7 @@ try
             zAcc = (zVel - prevZVel)/(curTime - prevTime);
             
             updatePlotLab4(fig, tip, quiv, V, W, X, Y, Z, AA, BB, CC, DD, curTime, xPos, yPos, zPos, xVel, yVel, zVel, xAcc, yAcc, zAcc, tVel);
-           
+            %pause(1);
             drawnow();
         end
         
