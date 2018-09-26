@@ -5,8 +5,8 @@
 % ------------
 % This MATLAB script creates a live stick model plot of the robotic arm and keeps
 % track of the position, velocity, and acceleration of the tip. The code
-% below has the robot moving its tip between given points using trajectory
-% generation.
+% below uses the Jacobian of the robot to move the arm using inverse
+% velocity kinematics. Also draws the velocity vector of the robot
 %
 %
 %
@@ -216,6 +216,7 @@ try
         pidPacket = zeros(1, 15, 'single');
         
         loopStartTime = clock;
+        %While the tip has not reached the setpoint
             while(~reachedSetpoint(pos(:,4),k))
                 
                 returnPacket = getStatus(pp, packet);
@@ -242,9 +243,11 @@ try
                 
                 loopEndTime = clock;
                 %etime(loopEndTime,loopStartTime)
+                %Finds the joint angles
                 jAng = jVel*abs(etime(loopEndTime,loopStartTime));
                 loopStartTime = clock;
                 
+                %Finds the incremental setpoint
                 incrementalSP = jAng' + currentAngle;
                 
                 pidPacket(1:3) = incrementalSP*1024/90;
@@ -263,6 +266,7 @@ try
                 yPos = pos(2,:);
                 zPos = pos(3,:);
                 
+                %Finds the magnitude of the current vector
                 magnitudeV = sqrt(power(double(xPos(4)),2)+power(double(yPos(4)),2)+power(double(zPos(4)),2));
                 
                 tVel = fwdVelKin(currentAngle,currentVel);

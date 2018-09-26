@@ -1,6 +1,7 @@
 function [ velVec ] = calcVelVec( start,goal,vel )
-%calcVelVec Summary of this function goes here
-%   Detailed explanation goes here
+%calcVelVec Calculates the Velocity Vector
+%   calculates the velocity vector using the start and end positions, and
+%   the desired velocity
 
     vector = goal - start;
     

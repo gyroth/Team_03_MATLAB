@@ -1,29 +1,13 @@
-%% RBE 3001 - 18A - HW2 Solutions
-%
-% Authors: Nathaniel Goldfarb and Stephen Powers
-%
-
 clear all
 close all
 clc
-
-%% Question 1
-%
-
-%%
-% 1a. Figure
-%
-% <<Prob1a.jpg>>
-%
 
 % Declare symbolic varibles
 syms A B C t q1(t) q2(t) q3(t) pi
 symVariables = [A, B, C, q1(t), q2(t), q3(t), pi];
 
-%%
-% 1b. D-H Param Table. 
-% The following is the table containing the DH Parameters for the above
-% diagram.
+%% 
+% The DH Parameters for each link
 
 link1=  [0  -pi/2 -A q1(t)-pi/2];
 link2 = [B  0  0 q2(t)];
@@ -34,13 +18,7 @@ titles = ["Link", "A", "alpha", "d", "theta"];
 disp([titles; [[1; 2; 3], links]]);
 
 %%
-% 1c. See function dhParam.m (attached code, also below)
-%
-% <<Prob1c.png>>
-%
-
-%%
-% 1d. Intermediate homogeneous transforms
+%  Intermediate homogeneous transforms
 % The following is the function used to calculate the matrix from the given
 % parameters. As specified above, the values of the link_k arrays are as
 % follows:
@@ -56,7 +34,7 @@ T12 = dhParam(link2(1), link2(2), link2(3), link2(4))
 T23 = dhParam(link3(1), link3(2), link3(3), link3(4))
 
 %%
-% 1e. Forward Kinematics
+% Forward Kinematics
 %
 % The complete transformation is found via multiplying intermediate
 % transforms.
@@ -66,7 +44,7 @@ T03 = simplify(T03);
 pretty(T03);
 
 %%
-% 1f. Numerical solution
+% Numerical solution
 
 % pi/12 = 15 deg
 % pi/6 = 30 deg
@@ -88,12 +66,12 @@ numerical_T03 = subs(T03, symVariables, vals);
 numerical_T03 = double(numerical_T03)
 
 %%
-% 1g. Approach vector
+% Approach vector
 % Take the first three values of the complete transform. 
 x3 = numerical_T03(1:3, 1)
 
 %%
-% 1h. Velocity kinematics
+% Velocity kinematics
 % get time derivative of position vector
 
 syms dq1 dq2 dq3
@@ -108,7 +86,7 @@ vel_kin = subs(vel_kin, ...
 pretty(simplify(vel_kin));
 
 %%
-% 1i. Jacobian
+% Jacobian
 % obtains the jacobian of the robot
 
 col1 = simplify(subs(vel_kin, [dq1, dq2, dq3], [1, 0, 0]));
@@ -124,10 +102,6 @@ ang_J = [ang_col_1, ang_col_2, ang_col_3];
 J = [pos_J; ang_J]
 
 %%
-% Alternate Solution to 1i.
-% Creates same Jacobian taking the partial derivative of the forward
-% kinematics of q1, q2, and q3.
-
 % turn the symbolic functions into symbolic variables to use diff
 syms q1 q2 q3
 symVarVals = [A, B, C, q1, q2, q3, pi];

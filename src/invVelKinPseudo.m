@@ -1,7 +1,6 @@
 function [ desJointVel ] = invVelKinPseudo( curAng,desTVel )
 %invVelKinPseudo Uses Pseudoinverse to get the inverse of J and then
-%outputs the 
-%   Detailed explanation goes here
+%outputs the joint velocities
 j = jacob0(curAng)
 
 % jT = j'

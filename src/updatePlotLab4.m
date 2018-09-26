@@ -1,6 +1,7 @@
 function pos = updatePlotLab4(fig, tip, quiv, V, W, X, Y, Z, AA, BB, CC, DD, curTime,xPos, yPos, zPos, xVel, yVel, zVel, xAcc, yAcc, zAcc, tVel)
-%updatePlotLab3 
-%Updates the plots of the arm and its variables
+%updatePlotLab4
+%Updates the plots of the arm and its variables, adjusted for forward
+%differential kinematics, and updates the velocity vector
 
 addpoints(tip, double(xPos(4)), double(yPos(4)), double(zPos(4)));
 

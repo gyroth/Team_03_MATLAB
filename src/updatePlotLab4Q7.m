@@ -1,6 +1,7 @@
 function pos = updatePlotLab4Q7(fig, tip, quiv, V, W, X, Y, Z, AA, BB, curTime, xPos, yPos, zPos, xVelo, yVelo, zVelo, tVel, magnitudeV)
 %updatePlotLab4Q7 
-%Updates the plots of the arm and its variables
+%Updates the plots of the arm and its variables, adjusted for inverse
+%kinematics
 
 addpoints(tip, double(xPos(4)), double(yPos(4)), double(zPos(4)));
 

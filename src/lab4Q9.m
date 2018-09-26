@@ -5,9 +5,9 @@
 % ------------
 % This MATLAB script creates a live stick model plot of the robotic arm and keeps
 % track of the position, velocity, and acceleration of the tip. The code
-% below has the robot moving its tip between given points using trajectory
-% generation.
-%
+% below attempts to move the robot to the point where the user had clicked
+% using ginput. Despite our best efforts, our logic seemed sound, but the
+% robot did not move.
 %
 %
 clear

@@ -1,4 +1,5 @@
 function atSetpoint = reachedSetpoint(currentPos, desJ)
+%Checks to see whether or not the arm has reached the designated setpoint
     atSetpoint = false;
         
     %convert back to angles   

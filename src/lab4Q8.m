@@ -3,6 +3,10 @@ function [ output_args ] = lab4Q8( xPos, zPos, desP, desV)
        %zPos is the joint positions in Z
        %desP is the desired point to move to
        %desV is the desired velocity at which to move to desP
+%Implements the numeric inverse kinematics algorithm on a 2D plot on the
+%XZ-plane The arm will move to the point that is clicked on by the user
+%using ginput
+
 curP = [180;0;-34];
 
 
