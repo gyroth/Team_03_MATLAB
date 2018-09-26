@@ -19,27 +19,27 @@ while(b<=10)
     loopStartTime = clock;
 while(dontExit)
     
-    done = (curP >= (desP - [2;2;2]))
+    done = (curP >= (desP - [2;2;2]));
     if(done == [1;1;1])
         dontExit = false;
     end
-    xPos
-    zPos
+
     %updates the plot
     set(P.handle,'xdata', xPos, 'ydata', zPos);
+    drawnow();
     pause(.01);
     
     %gets the velocity vector between current position and desired position
-    velVec = calcVelVec(curP,desP,desV)
+    velVec = calcVelVec(curP,desP,desV);
     
     %Degrees
     curAngles = iKin(curP);
     
     %calculates the desired joint velocities
-    jV = invVelKin(curAngles, velVec)
+    jV = invVelKin(curAngles, velVec);
     
     loopEndTime = clock;
-    curP
+    
     %change in angle
     jAng = jV*abs(etime(loopEndTime,loopStartTime));
     
@@ -49,10 +49,10 @@ while(dontExit)
     nJA = jAng+curAngles;
     
     %change in joint space
-    incrementalSP = calcJointPos(nJA)
+    incrementalSP = calcJointPos(nJA);
     
     %new position in joint space    
-    curP = incrementalSP(:,4)
+    curP = incrementalSP(:,4);
     
     xPos = incrementalSP(1,:);
     zPos = incrementalSP(3,:);
@@ -64,10 +64,10 @@ done = [0;0;0];
 
 inp = ginput(1);
 
-disp(inp)
-
 desP(1) = inp(1);
 desP(2) = 0;
 desP(3) = inp(2);
+
+disp(desP)
 end
 

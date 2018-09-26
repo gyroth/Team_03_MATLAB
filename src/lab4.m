@@ -216,7 +216,6 @@ try
         pidPacket = zeros(1, 15, 'single');
         
         loopStartTime = clock;
-        while(b<5)
             while(~reachedSetpoint(pos(:,4),k))
                 
                 returnPacket = getStatus(pp, packet);
@@ -286,19 +285,6 @@ try
                 %pause(.01);
                 drawnow();
             end
-            b = b+1;
-            dontExit = true;
-            curP = desP;
-            done = [0;0;0];
-            
-            inp = ginput(1);
-            
-            disp(inp)
-            
-            desP(1) = inp(1);
-            desP(2) = 0;
-            desP(3) = inp(2);
-        end
     end
 catch exception
     getReport(exception)

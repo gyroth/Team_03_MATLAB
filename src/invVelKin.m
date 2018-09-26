@@ -6,7 +6,6 @@ jaco = jacob0(curAng);
 
 inverse = inv(jaco(1:3,:));
 
-desJointVel = rad2deg(inverse * desTVel);
-
+desJointVel = rad2deg(inverse) * desTVel;
 
 end

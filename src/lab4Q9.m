@@ -59,14 +59,21 @@ try
     calibrate(pp,packet);
     % Sets the received packet into a 1x3 matrix of joint angles
     
+    %ticks, ticks/s, force measure
     returnPacket = getStatus(pp,packet);
+    
+    %current joint angles
     currentAngle = processStatus(returnPacket);
+    %current joint velocities
+    currentVel = processStatusVel(returnPacket);
     
     runstart = clock;
     %changes degrees to angles
     
+    %outputs points in task space for each coord frame
     pos= calcJointPos(currentAngle);
     
+    %initializes variables to 0
     xPos = zeros(3,1,'single');
     yPos = zeros(3,1,'single');
     zPos = zeros(3,1,'single');
@@ -80,167 +87,110 @@ try
     zAcc = zeros(3,1,'single');
     curTime = 0;
     
-    %% Sets the position of the arm in task space
+    desP = zeros(3,1);
     
-    % Waypoints in task space to create a triangle with the tip in millimeters
-    viaPos = [[180;0;25],[170;-55;100], [170;55;100],[180;0;25]];
+    %initializes tracker for number of ginputs
+    b = 1;
     
-    % Waypoints to create a "3" with the tip in millimeters
+    % Sets the desired travel velocity in mm/s
+    desVel = 105;
     
-    % Sets the desired travel velocities in task space for a downward
-    % motion
-    desVel = 45;
-    
-    viaJtsAngles = zeros(size(viaPos));
-    
-    numPoints = size(viaJtsAngles);
-    
-    for a = 1:numPoints(2)
-        viaJtsAngles(:,a) = iKin(viaPos(:,a));
-    end
-    
-    % Joint Angles in Ticks at each Setpoint
-    viaJts = viaJtsAngles * 1024 / 90;
-    
-    previous = viaJts(:,1);
-    
-    returnPacket = getStatus(pp, packet);
-    
-    % Sets the received packet into a 3x3 matrix
-    currentAngle = processStatus(returnPacket);
-    currentVel = processStatusVel(returnPacket);
-    
-    pos= calcJointPos(currentAngle);
-    
+    %Current tip velocities in mm/s
     xVelo = currentVel(1);
     yVelo = currentVel(2);
     zVelo = currentVel(3);
     
+    %Current tip position in Cartesian space
     xPos = pos(1,:);
     yPos = pos(2,:);
     zPos = pos(3,:);
     
-    %Creates the stickplot model of the arm
-    subplot(3,2,[1,3]);
-    fig = createStickPlot(xPos, yPos, zPos);
+    %Creates stickplot model in the x-z plane
     hold on
-    quiv.handle = quiver3(double(xPos(4)),double(yPos(4)),double(zPos(4)),xVelo, yVelo, zVelo, 'LineWidth', 1.5, 'MaxHeadSize', 0.5, 'AutoScaleFactor', 0.04);
-    tip = animatedline(double(xPos(4)),double(yPos(4)),double(zPos(4)), 'Color', 'g','LineWidth',1.5);
+    P = createXZStickPlot(xPos,zPos);
+    
+    A.handle = plot([xPos(1,4),xPos(1,4)],[zPos(1,4),zPos(1,4)]);
     hold off
     
-    returnPacket = getStatus(pp, packet);
+    %time
+    start = clock;
     
+    %initializes the sending packet to zeros
+    pidPacket = zeros(1, 15, 'single');
     
-    %     %Create ylabel xVelo = currentVel(1);
-    yVelo = currentVel(2);
-    zVelo = currentVel(3);
+    %gets a user defined point from the graph in Cartesian space
+    input = ginput(1);
     
-    traveltime = 1.5;
+    %puts the user defined input into a 3d space vector instead of 2d
+    desP(1) = input(1);
+    desP(2) = 0;
+    desP(3) = input(2);
     
-    %Cycles through each point and moves the tip to the desired position
-    %using trajectory generation. While moving, the program calls update
-    %plot to make changes to the plots.
-    for k = viaJts
-        
-        kAng = k * 90/1024;
-        kXYZ = calcJointPos(kAng);
-        kXYZ(2,4) = -kXYZ(2,4);
-        
-        last = previous;
-        
-        previous = k;
-        
-        start = clock;
-        
-        pidPacket = zeros(1, 15, 'single');
-        
+    while(b<5)
         loopStartTime = clock;
-        while(b<5)
-            while(~reachedSetpoint(pos(:,4),k))
-                
-                returnPacket = getStatus(pp, packet);
-                
-                prevTime = curTime;
-                curTime = etime(clock, runstart);
-                
-                %Joint angles and joint velocities
-                currentAngle = processStatus(returnPacket);
-                currentVel  = processStatusVel(returnPacket);
-                
-                xVelo = currentVel(1);
-                yVelo = currentVel(2);
-                zVelo = currentVel(3);
-                
-                pos= calcJointPos(currentAngle);
-                pos(2,4) = -pos(2,4);
-                
-                velVec = calcVelVec(pos(:,4),kXYZ(:,4),desVel);
-                
-                %Inverse Velocity Kinematics: returns joint velocities in
-                %degrees
-                jVel = invVelKin(currentAngle,velVec);
-                
-                loopEndTime = clock;
-                %etime(loopEndTime,loopStartTime)
-                jAng = jVel*abs(etime(loopEndTime,loopStartTime));
-                loopStartTime = clock;
-                
-                incrementalSP = jAng' + currentAngle;
-                
-                pidPacket(1:3) = incrementalSP*1024/90;
-                pp.write(PID_SERV_ID, pidPacket);
-                pause(.004);
-                pidReturnPacket = pp.read(PID_SERV_ID);
-                
-                % Calculates velocity and acceleration using changes in
-                % position
-                
-                prevXPos = xPos;
-                prevYPos = yPos;
-                prevZPos = zPos;
-                
-                xPos = pos(1,:);
-                yPos = pos(2,:);
-                zPos = pos(3,:);
-                
-                magnitudeV = sqrt(power(double(xPos(4)),2)+power(double(yPos(4)),2)+power(double(zPos(4)),2));
-                
-                tVel = fwdVelKin(currentAngle,currentVel);
-                
-                prevXVel = xVel;
-                prevYVel = yVel;
-                prevZVel = zVel;
-                
-                xVel = (xPos-prevXPos)/(curTime - prevTime);
-                yVel = (yPos-prevYPos)/(curTime - prevTime);
-                zVel = (zPos-prevZPos)/(curTime - prevTime);
-                
-                xAcc = (xVel - prevXVel)/(curTime - prevTime);
-                yAcc = (yVel - prevYVel)/(curTime - prevTime);
-                zAcc = (zVel - prevZVel)/(curTime - prevTime);
-                
-                updatePlotLab4Q7(fig, tip, quiv, V, W, X, Y, Z, AA, BB, curTime, xPos, yPos, zPos, xVelo, yVelo, zVelo, tVel, magnitudeV);
-                %updatePlotLab4(fig, tip, quiv, V, W, X, Y, Z, AA, BB, CC, DD, curTime, xPos, yPos, zPos, xVel, yVel, zVel, xAcc, yAcc, zAcc, tVel);
-                
-                %pause(.01);
-                drawnow();
-            end
-            b = b+1;
-            dontExit = true;
-            curP = desP;
-            done = [0;0;0];
+        %checks to see if the arm is at the desired position in the
+        %Cartesian space
+        while(~reachedSetpoint(pos(:,4),desP))
             
-            inp = ginput(1);
+            %%ticks, ticks/s, force measure
+            returnPacket = getStatus(pp, packet);
             
-            disp(inp)
+            %Joint angles(deg)
+            currentAngle = processStatus(returnPacket)
             
-            desP(1) = inp(1);
-            desP(2) = 0;
-            desP(3) = inp(2);
+            pos= calcJointPos(currentAngle);
+            pos(2,4) = -pos(2,4);
+            
+            %pos is the current tip position; kXYZ is the desired tip
+            %position; desVel is the desired velocity
+            velVec = calcVelVec(pos(:,4),desP,desVel)
+            
+            posVec = desP
+            
+            set(A.handle,'xdata',[pos(1,4),posVec(1)], 'ydata', [pos(3,4),posVec(3)]);
+            drawnow()
+            
+            %Inverse Velocity Kinematics: returns joint velocities in
+            %degrees
+            jVel = invVelKin(currentAngle',velVec);
+            
+            loopEndTime = clock;
+            
+            %change in angle degrees
+            jAng = jVel*abs(etime(loopEndTime,loopStartTime))
+            
+            loopStartTime = clock;
+            
+            %new angle in degrees
+            incrementalSP = jAng' + currentAngle
+            
+            %new angle in ticks
+            pidPacket(1:3) = incrementalSP*1024/90;
+            
+            pp.write(PID_SERV_ID, pidPacket);
+            pause(.004);
+            pidReturnPacket = pp.read(PID_SERV_ID);
+            
+            xPos = pos(1,:);
+            zPos = pos(3,:);
+            
+            set(P.handle,'xdata', xPos, 'ydata', zPos);
+            pause(.01);
+            drawnow();
         end
+        b = b+1;
+        
+        input = ginput(1);
+        
+        disp(input)
+        
+        desP(1) = input(1);
+        desP(2) = 0;
+        desP(3) = input(2);
+        pause(.01);
     end
 catch exception
     getReport(exception)
-    %disp('Exited on error, clean shutdown');
+    disp('Exited on error, clean shutdown');
 end
 pp.shutdown()

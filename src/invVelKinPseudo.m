@@ -4,13 +4,13 @@ function [ desJointVel ] = invVelKinPseudo( curAng,desTVel )
 %   Detailed explanation goes here
 j = jacob0(curAng)
 
-jT = j'
+% jT = j'
+% 
+% intermediate = j*jT
+% 
+% jI = inv(intermediate)
 
-intermediate = j*jT
-
-jI = inv(intermediate)
-
-desJointVel = rad2deg(jT*desTVel);
+desJointVel = rad2deg(pinv(j)*desTVel);
 
 end
 
