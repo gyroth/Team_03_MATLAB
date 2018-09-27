@@ -1,5 +1,5 @@
 function [ transf ] = dhParam( a, alpha, d, theta )
-%UNTITLED5 The homogenous transform based of the given DH parameters 
+%dhParam The homogenous transform based off of the given DH parameters 
 %   Calculates the numerical matrix for the homogenous transform using the
 %   given DH parameters
 
