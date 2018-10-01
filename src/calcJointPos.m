@@ -19,7 +19,7 @@ joint = deg2rad(joint);
 % diagram.
 
 % a, alpha, d, theta
-link1=  [0  pi/2 A joint(1)];
+link1=  [0  pi/2 A -joint(1)];
 link2 = [B  0  0 joint(2)];
 link3 = [C  0  0 joint(3)-pi/2];
 

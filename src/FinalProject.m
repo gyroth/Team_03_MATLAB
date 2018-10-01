@@ -1,5 +1,5 @@
 %%
-% RBE3001 - Laboratory 4
+% RBE3001 - Final Project
 %
 %
 % ------------
@@ -59,7 +59,6 @@ try
     returnPacket = getStatus(pp, packet);
     calibrate(pp,packet);
     % Sets the received packet into a 1x3 matrix of joint angles
-    while(1)
     %ticks, ticks/s, force measure
     returnPacket = getStatus(pp,packet);
     
@@ -69,8 +68,7 @@ try
     currentVel = processStatusVel(returnPacket);
     %current joint torques (ADC bit)
     currentTor = processStatusTor(returnPacket);
-    appliedTorque(currentTor)
-    end
+    appTorque = appliedTorque(currentTor);
     
     runstart = clock;
     %changes degrees to angles
@@ -110,12 +108,17 @@ try
     yPos = pos(2,:);
     zPos = pos(3,:);
     
+    
+    
+    Ftip = statics3001(currentAngle', appTorque');
+    
     %Creates stickplot model in the x-z plane
     hold on
-    P = createXZStickPlot(xPos,zPos);
-    
-    A.handle = plot([xPos(1,4),xPos(1,4)],[zPos(1,4),zPos(1,4)]);
+    P = createStickPlot(xPos,yPos,zPos);
+    quiv.handle = quiver3(double(xPos(4)),double(yPos(4)),double(zPos(4)),Ftip(1), Ftip(2), Ftip(3), 'LineWidth', 1.5, 'MaxHeadSize', 0.5, 'AutoScaleFactor', 15000, 'Color', 'b');
+    %A.handle = plot([xPos(1,4),xPos(1,4)],[zPos(1,4),zPos(1,4)]);
     hold off
+    drawnow();
     
     %time
     start = clock;
@@ -123,76 +126,36 @@ try
     %initializes the sending packet to zeros
     pidPacket = zeros(1, 15, 'single');
     
-    %gets a user defined point from the graph in Cartesian space
-    input = ginput(1);
-    
-    %puts the user defined input into a 3d space vector instead of 2d
-    desP(1) = input(1);
-    desP(2) = 0;
-    desP(3) = input(2);
-    
-    while(b<5)
-        loopStartTime = clock;
-        %checks to see if the arm is at the desired position in the
-        %Cartesian space
-        while(~reachedSetpoint(pos(:,4),desP))
-            
-            %%ticks, ticks/s, force measure
+    while(1)
+            %%ticks, ticks/s, ADC bits
             returnPacket = getStatus(pp, packet);
             
             %Joint angles(deg)
-            currentAngle = processStatus(returnPacket)
+            currentAngle = processStatus(returnPacket);
+            
+            %ADC bits
+            currentTor = processStatusTor(returnPacket);
+            %Joint Torque
+            appTorque = appliedTorque(currentTor);
+            %Force at Tip
+            Ftip = statics3001(currentAngle', appTorque');
             
             pos= calcJointPos(currentAngle);
-            pos(2,4) = -pos(2,4);
-            
-            %pos is the current tip position; kXYZ is the desired tip
-            %position; desVel is the desired velocity
-            velVec = calcVelVec(pos(:,4),desP,desVel)
-            
-            posVec = desP
-            
-            set(A.handle,'xdata',[pos(1,4),posVec(1)], 'ydata', [pos(3,4),posVec(3)]);
-            drawnow()
-            
-            %Inverse Velocity Kinematics: returns joint velocities in
-            %degrees
-            jVel = invVelKin(currentAngle',velVec);
-            
-            loopEndTime = clock;
-            
-            %change in angle degrees
-            jAng = jVel*abs(etime(loopEndTime,loopStartTime))
-            
-            loopStartTime = clock;
-            
-            %new angle in degrees
-            incrementalSP = jAng' + currentAngle
-            
-            %new angle in ticks
-            pidPacket(1:3) = incrementalSP*1024/90;
-            
+
             pp.write(PID_SERV_ID, pidPacket);
             pause(.004);
             pidReturnPacket = pp.read(PID_SERV_ID);
             
             xPos = pos(1,:);
+            yPos = pos(2,:);
             zPos = pos(3,:);
             
-            set(P.handle,'xdata', xPos, 'ydata', zPos);
-            pause(.01);
+            set(quiv.handle, 'xdata', xPos(4), 'ydata', yPos(4), 'zdata', zPos(4), 'udata', Ftip(1), 'vdata', Ftip(2), 'wdata', Ftip(3));
+            set(P.handle,'xdata', xPos, 'ydata', yPos, 'zdata', zPos);
+       
             drawnow();
-        end
-        b = b+1;
         
-        input = ginput(1);
-        
-        disp(input)
-        
-        desP(1) = input(1);
-        desP(2) = 0;
-        desP(3) = input(2);
-        pause(.01);
+            pause(.001);
     end
 catch exception
     getReport(exception)

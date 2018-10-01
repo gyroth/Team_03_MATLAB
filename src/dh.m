@@ -12,7 +12,7 @@ symVariables = [A, B, C, q1(t), q2(t), q3(t), pi];
 % The following is the table containing the DH Parameters for the above
 % diagram.
 
-link1=  [0  pi/2 A q1(t)];
+link1=  [0  pi/2 A -q1(t)];
 link2 = [B  0  0 q2(t)];
 link3 = [C  0  0 q3(t)-pi/2];
 
