@@ -45,7 +45,17 @@ kP3 = .004;
 kI3 = 0;
 kD3 = .009;
 
+%% Instantiate hardware (turn on camera)
+if ~exist('cam', 'var') % connect to webcam iff not connected
+    cam = webcam();
+    pause(1); % give the camera time to adjust to lighting
+end
+
 try
+    img = snapshot(cam);
+    green = greenMask(img);
+    imshow(green);
+    
     packet = zeros(15, 1, 'single');
     PID_SERV_ID = 37;
     
