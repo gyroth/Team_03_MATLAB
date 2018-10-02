@@ -45,18 +45,9 @@ kP3 = .004;
 kI3 = 0;
 kD3 = .009;
 
-%% Instantiate hardware (turn on camera)
-if ~exist('cam', 'var') % connect to webcam iff not connected
-    cam = webcam();
-    pause(1); % give the camera time to adjust to lighting
-end
-
 try
-    img = snapshot(cam);
-    green = greenMask(img);
-    imshow(green);
-    
     packet = zeros(15, 1, 'single');
+    %% Sets the PID
     PID_SERV_ID = 37;
     
     pidVal = [kP1, kI1, kD1; ...
@@ -65,9 +56,11 @@ try
     
     setPIDConstants(pp, pidVal);
     
-    
+    %% Calibrate
     returnPacket = getStatus(pp, packet);
     calibrate(pp,packet);
+    
+    %% Gets the Current Status
     % Sets the received packet into a 1x3 matrix of joint angles
     %ticks, ticks/s, force measure
     returnPacket = getStatus(pp,packet);
@@ -102,6 +95,22 @@ try
     
     desP = zeros(3,1);
     
+    %% Sets the position of the arm in task space
+    
+    % Waypoints in task space in millimeters
+    viaPos = [190;-10;20];
+    
+    viaJtsAngles = zeros(size(viaPos));
+    
+    numPoints = size(viaJtsAngles);
+    
+    for a = 1:numPoints(2)
+        viaJtsAngles(:,a) = iKin(viaPos(:,a));
+    end
+    
+    % Joint Angles in Ticks at each Setpoint
+    viaJts = viaJtsAngles * 1024 / 90;
+    
     %initializes tracker for number of ginputs
     b = 1;
     
@@ -118,8 +127,6 @@ try
     yPos = pos(2,:);
     zPos = pos(3,:);
     
-    
-    
     Ftip = statics3001(currentAngle', appTorque');
     
     %Creates stickplot model in the x-z plane
@@ -127,6 +134,7 @@ try
     P = createStickPlot(xPos,yPos,zPos);
     quiv.handle = quiver3(double(xPos(4)),double(yPos(4)),double(zPos(4)),Ftip(1), Ftip(2), Ftip(3), 'LineWidth', 1.5, 'MaxHeadSize', 0.5, 'AutoScaleFactor', 15000, 'Color', 'b');
     %A.handle = plot([xPos(1,4),xPos(1,4)],[zPos(1,4),zPos(1,4)]);
+    view([500,-500,500]);
     hold off
     drawnow();
     
@@ -144,14 +152,16 @@ try
             currentAngle = processStatus(returnPacket);
             
             %ADC bits
-            currentTor = processStatusTor(returnPacket);
-            %Joint Torque
+            currentTor = processStatusTor(returnPacket)
+            %Joint Torque (1x3 Matrix)
             appTorque = appliedTorque(currentTor);
             %Force at Tip
-            Ftip = statics3001(currentAngle', appTorque');
+            Ftip = statics3001(currentAngle', appTorque')
             
             pos= calcJointPos(currentAngle);
-
+            
+            pidPacket(1:3) = viaJts;
+            
             pp.write(PID_SERV_ID, pidPacket);
             pause(.004);
             pidReturnPacket = pp.read(PID_SERV_ID);
