@@ -33,6 +33,12 @@ myHIDSimplePacketComs.connect();
 % Create a PacketProcessor object to send data to the nucleo firmware
 pp = PacketProcessor(myHIDSimplePacketComs);
 
+% Turn on Camera
+if ~exist('cam', 'var') % connect to webcam iff not connected
+    cam = webcam();
+    pause(1); % give the camera time to adjust to lighting
+end
+
 kP1 = .0001;
 kI1 = .0001;
 kD1 = .002;
@@ -47,6 +53,7 @@ kD3 = .009;
 
 try
     packet = zeros(15, 1, 'single');
+    
     %% Sets the PID
     PID_SERV_ID = 37;
     
@@ -73,9 +80,9 @@ try
     currentTor = processStatusTor(returnPacket);
     appTorque = appliedTorque(currentTor);
     
+    %gets the time at the start of the program
     runstart = clock;
-    %changes degrees to angles
-    
+       
     %outputs points in task space for each coord frame
     pos= calcJointPos(currentAngle);
     
@@ -95,10 +102,22 @@ try
     
     desP = zeros(3,1);
     
+    %% Picture Processing and Object Location
+    % takes a picture
+     img = snapshot(cam);
+     
+     % processes the picture and returns the location of the first
+     % object in task space (yellow,blue,green order)
+     objectInfo = locObject(img);
+     
+     % Separates the targeted object's location and color
+     objectLoc = objectInfo(1:3);
+     objectColor = objectInfo(4);
+     
     %% Sets the position of the arm in task space
     
     % Waypoints in task space in millimeters
-    viaPos = [190;-10;20];
+    viaPos = objectLoc;
     
     viaJtsAngles = zeros(size(viaPos));
     
@@ -110,12 +129,6 @@ try
     
     % Joint Angles in Ticks at each Setpoint
     viaJts = viaJtsAngles * 1024 / 90;
-    
-    %initializes tracker for number of ginputs
-    b = 1;
-    
-    % Sets the desired travel velocity in mm/s
-    desVel = 105;
     
     %Current tip velocities in mm/s
     xVelo = currentVel(1);
@@ -144,7 +157,7 @@ try
     %initializes the sending packet to zeros
     pidPacket = zeros(1, 15, 'single');
     
-    while(1)
+    while(stillObjects(img))
             %%ticks, ticks/s, ADC bits
             returnPacket = getStatus(pp, packet);
             
@@ -152,11 +165,13 @@ try
             currentAngle = processStatus(returnPacket);
             
             %ADC bits
-            currentTor = processStatusTor(returnPacket)
+            currentTor = processStatusTor(returnPacket);
+            
             %Joint Torque (1x3 Matrix)
             appTorque = appliedTorque(currentTor);
+            
             %Force at Tip
-            Ftip = statics3001(currentAngle', appTorque')
+            Ftip = statics3001(currentAngle', appTorque');
             
             pos= calcJointPos(currentAngle);
             
@@ -171,6 +186,7 @@ try
             zPos = pos(3,:);
             
             set(quiv.handle, 'xdata', xPos(4), 'ydata', yPos(4), 'zdata', zPos(4), 'udata', Ftip(1), 'vdata', Ftip(2), 'wdata', Ftip(3));
+            
             set(P.handle,'xdata', xPos, 'ydata', yPos, 'zdata', zPos);
        
             drawnow();

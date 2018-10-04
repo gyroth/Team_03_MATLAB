@@ -46,13 +46,13 @@ if(idx~=0)
     
     imshow(img);  
     %disp(color);
-    present = true;
+    present = 1;
 else
-    present = false;
+    present = 0;
     centroid = [0,0];
     %X = sprintf('NO %s', color);
     %disp(X);
 end
-returnVal = [centroid, present, color];
+returnVal = {centroid, present, color};
 end
 

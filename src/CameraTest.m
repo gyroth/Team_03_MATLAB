@@ -6,31 +6,33 @@ if ~exist('cam', 'var') % connect to webcam iff not connected
     pause(1); % give the camera time to adjust to lighting
 end
 
-while(1)
+img = snapshot(cam);
+
+while(stillObjects(img))
     img = snapshot(cam);
     
     yCen = findCenter("yellow",img);
+    yLoc = yCen{1};
     bCen = findCenter("blue",img);
+    bLoc = bCen{1};
     gCen = findCenter("green",img);
+    gLoc = gCen{1};
     
-    img = snapshot(cam);
-    imshow(img);
-    
-    if yCen(3) == 'true'
+    if yCen{2}
         ystat = 'yellow';
         
     else
         ystat = 'no yellow';
     end
     
-    if bCen(3) == 'true'
+    if bCen{2}
         bstat = 'blue';
         
     else
         bstat = 'no blue';
     end
     
-    if gCen(3) == 'true'
+    if gCen{2}
         gstat = 'green';
         
     else
@@ -42,12 +44,12 @@ while(1)
     
     hold on
         
-    plot(str2double(yCen(1)),str2double(yCen(2)),'r*')
-    plot(str2double(gCen(1)),str2double(gCen(2)),'g*')
-    plot(str2double(bCen(1)),str2double(bCen(2)), 'b*')
+    plot((yLoc(1)),(yLoc(2)),'r*')
+    plot((gLoc(1)),(gLoc(2)),'g*')
+    plot((bLoc(1)),(bLoc(2)), 'b*')
         
     hold off
     
     %X,Y,Z location of yellow in task space
-    yLoc = [mn2xy(str2double(yCen(1)),str2double(yCen(2))),-34]
+    yLoc = [mn2xy((yLoc(1)),(yLoc(2))),0];
 end
