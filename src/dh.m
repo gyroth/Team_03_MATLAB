@@ -48,33 +48,6 @@ T03 = simplify(T03);
 pretty(T03);
 
 %%
-% Numerical solution
-
-% pi/12 = 15 deg
-% pi/6 = 30 deg
-% A, B, and C are measured in cm
-vals = [60, 40, 20, pi/12, pi/6, -pi/12, pi];
-
-% Substitute symbols for the values
-numerical_T01 = subs(T01, symVariables, vals);
-% Evaluate fractions as decimals
-numerical_T01 = double(numerical_T01)
-
-numerical_T12 = subs(T12, symVariables, vals);
-numerical_T12 = double(numerical_T12)
-
-numerical_T23 = subs(T23, symVariables, vals);
-numerical_T23 = double(numerical_T23)
-
-numerical_T03 = subs(T03, symVariables, vals);
-numerical_T03 = double(numerical_T03)
-
-%%
-%  Approach vector
-% Take the first three values of the complete transform. 
-x3 = numerical_T03(1:3, 1)
-
-%%
 %  Velocity kinematics
 % get time derivative of position vector
 
@@ -121,3 +94,10 @@ alt_col3 = simplify(diff(alt_pos, q3));
 alt_pos_J = [alt_col1, alt_col2, alt_col3];
 
 alt_J = [alt_pos_J; ang_J]
+
+%inverse of top 3 rows of Jacobian
+JInv = simplify(inv(alt_J(1:3,1:3)))
+%pseudo inverse of Jacobian
+%this one takes a REALLY long time. If you don't care about it comment it
+%out
+JPInv = simplify(pinv(alt_J))

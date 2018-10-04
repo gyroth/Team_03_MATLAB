@@ -7,6 +7,7 @@ if ~exist('cam', 'var') % connect to webcam iff not connected
 end
 
 img = snapshot(cam);
+imshow(img);
 
 while(stillObjects(img))
     img = snapshot(cam);

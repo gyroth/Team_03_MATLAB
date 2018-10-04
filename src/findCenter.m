@@ -7,6 +7,17 @@ h = fspecial('average');
 imgfilt = imfilter(img,h);
 blurred = imfilter(imgfilt,h);
 
+% %segment image
+% 
+% [segImg,~] = segmentImage(blurred);
+% imshow(segImg);
+% 
+% for a = 1:3
+% segImg(:,:,a) = blurred(:,:,a) | segImg(:,:,a);
+% end
+% 
+% imshow(segImg);
+
 if color == 'yellow'
     mask = yMask3(blurred);
 end

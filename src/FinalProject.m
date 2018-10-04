@@ -82,7 +82,7 @@ try
     
     %gets the time at the start of the program
     runstart = clock;
-       
+    
     %outputs points in task space for each coord frame
     pos= calcJointPos(currentAngle);
     
@@ -102,18 +102,21 @@ try
     
     desP = zeros(3,1);
     
+    %initialize the home position when locating centroids of object
+    home = [175,0,169.28];
+    
     %% Picture Processing and Object Location
     % takes a picture
-     img = snapshot(cam);
-     
-     % processes the picture and returns the location of the first
-     % object in task space (yellow,blue,green order)
-     objectInfo = locObject(img);
-     
-     % Separates the targeted object's location and color
-     objectLoc = objectInfo(1:3);
-     objectColor = objectInfo(4);
-     
+    img = snapshot(cam);
+    
+    % processes the picture and returns the location of the first
+    % object in task space (yellow,blue,green order)
+    objectInfo = locObject(img);
+    
+    % Separates the targeted object's location and color
+    objectLoc = objectInfo(1:3);
+    objectColor = objectInfo(4);
+    
     %% Sets the position of the arm in task space
     
     % Waypoints in task space in millimeters
@@ -158,43 +161,170 @@ try
     pidPacket = zeros(1, 15, 'single');
     
     while(stillObjects(img))
-            %%ticks, ticks/s, ADC bits
-            returnPacket = getStatus(pp, packet);
+        %state = "still Objects";
+        %||||||| IMPLEMENTING STATE MACHINE HERE |||||||
+        %switch(state)
+        %case "still Objects"
+        %   takes picture
+%         %% Picture Processing and Object Location
+%         % takes a picture
+%         img = snapshot(cam);
+%         state = "where is it";
+
+        %case "where is it"
+        %   gets x-y location
+%         % processes the picture and returns the location of the first
+%         % object in task space (yellow,blue,green order)
+%         objectInfo = locObject(img);
+%         
+%         % Separates the targeted output to get the location
+%         objectLoc = objectInfo(1:3);
+%         state = "what color";
+
+        %case "what color"
+        %   gets the color
+%           objectColor = objectInfo(4);
+%           state = "go to Z above";
+
+        %case "go to Z above"
+        %   trajectory and move to X,Y of object staying at home Z
+%        %current tip position and desired joint angles
+%       while(~reachedSetpoint(pos(:,4),k))        
+%        %% Obtaining points
+%        % Waypoint in task space in millimeters to z above
+%        viaPos = [objectLoc(1:2),home(3)];
+%        
+%        viaJtsAngles = zeros(size(viaPos));
+%        
+%        numPoints = size(viaJtsAngles);
+%        
+%        for a = 1:numPoints(2)
+%            viaJtsAngles(:,a) = iKin(viaPos(:,a));
+%        end
+%        %ticks, ticks/s, ADC bits
+%        returnPacket = getStatus(pp, packet);
+%        
+%        %Joint angles(deg)
+%        currentAngle = processStatus(returnPacket);
+%        
+%        %ADC bits
+%        currentTor = processStatusTor(returnPacket);
+%        
+%        %Joint Torque (1x3 Matrix)
+%        appTorque = appliedTorque(currentTor); %%what measurement is this
+%        torque in
+%        
+%        %Force at Tip
+%        Ftip = statics3001(currentAngle', appTorque'); %%what measurement
+%        is this force in
+%        
+%        %Where is the tip right now
+%        pos= calcJointPos(currentAngle);
+%        
+%        %calculates the coefficients for the trajectory of the arm from
+%        %"HOME" to above object (same Z plane)
+%        joint1TrajCoef = quintTraj(0,traveltime,0,0,last(1),k(1),0,0);
+%        joint2TrajCoef = quintTraj(0,traveltime,0,0,last(2),k(2),0,0);
+%        joint3TrajCoef = quintTraj(0,traveltime,0,0,last(3),k(3),0,0);
+%        
+%            %joint 1 trajectory points
+%            J1 = quintPoint(etime(clock,moveStart), joint1TrajCoef(1,1), joint1TrajCoef(2,1), joint1TrajCoef(3,1), joint1TrajCoef(4,1), joint1TrajCoef(5,1), joint1TrajCoef(6,1));
+%            %joint 2 trajectory points
+%            J2 = quintPoint(etime(clock,moveStart), joint2TrajCoef(1,1), joint2TrajCoef(2,1), joint2TrajCoef(3,1), joint2TrajCoef(4,1), joint2TrajCoef(5,1), joint2TrajCoef(6,1));
+%            %joint 3 trajectory points
+%            J3 = quintPoint(etime(clock,moveStart), joint3TrajCoef(1,1), joint3TrajCoef(2,1), joint3TrajCoef(3,1), joint3TrajCoef(4,1), joint3TrajCoef(5,1), joint3TrajCoef(6,1));          
             
-            %Joint angles(deg)
-            currentAngle = processStatus(returnPacket);
-            
-            %ADC bits
-            currentTor = processStatusTor(returnPacket);
-            
-            %Joint Torque (1x3 Matrix)
-            appTorque = appliedTorque(currentTor);
-            
-            %Force at Tip
-            Ftip = statics3001(currentAngle', appTorque');
-            
-            pos= calcJointPos(currentAngle);
-            
-            pidPacket(1:3) = viaJts;
-            
-            pp.write(PID_SERV_ID, pidPacket);
-            pause(.004);
-            pidReturnPacket = pp.read(PID_SERV_ID);
-            
-            xPos = pos(1,:);
-            yPos = pos(2,:);
-            zPos = pos(3,:);
-            
-            set(quiv.handle, 'xdata', xPos(4), 'ydata', yPos(4), 'zdata', zPos(4), 'udata', Ftip(1), 'vdata', Ftip(2), 'wdata', Ftip(3));
-            
-            set(P.handle,'xdata', xPos, 'ydata', yPos, 'zdata', zPos);
-       
-            drawnow();
+%        pidPacket(1:3) = viaJts;
+%        
+%        pp.write(PID_SERV_ID, pidPacket);
+%        pause(.004);
+%        pidReturnPacket = pp.read(PID_SERV_ID);
+%        end
+
+        %case "gripper open?"
+        %   make sure the gripper is open
         
-            pause(.001);
+        %case "pick it up"
+        %   vertical trajectory to the object
+        
+        %case "weigh object"
+        %   measure force at tip and determine if heavy or light
+        
+        %case "heavy"
+        %   move the object to color specific point far from us outside camera bounds
+        
+        %case "light"
+        %   move the object to color specific point close to us outside camera bounds
+        
+        %% Picture Processing and Object Location
+        % takes a picture
+        img = snapshot(cam);
+        
+        % processes the picture and returns the location of the first
+        % object in task space (yellow,blue,green order)
+        objectInfo = locObject(img);
+        
+        % Separates the targeted object's location and color
+        objectLoc = objectInfo(1:3);
+        objectColor = objectInfo(4);
+        
+        %% Obtaining points
+        % Waypoint in task space in millimeters
+        viaPos = objectLoc;
+        
+        viaJtsAngles = zeros(size(viaPos));
+        
+        numPoints = size(viaJtsAngles);
+        
+        for a = 1:numPoints(2)
+            viaJtsAngles(:,a) = iKin(viaPos(:,a));
+        end
+        
+        %%ticks, ticks/s, ADC bits
+        returnPacket = getStatus(pp, packet);
+        
+        %Joint angles(deg)
+        currentAngle = processStatus(returnPacket);
+        
+        %ADC bits
+        currentTor = processStatusTor(returnPacket);
+        
+        %Joint Torque (1x3 Matrix)
+        appTorque = appliedTorque(currentTor);
+        
+        %Force at Tip
+        Ftip = statics3001(currentAngle', appTorque');
+        
+        %Where is the tip right now
+        pos= calcJointPos(currentAngle);
+        
+        %calculates the coefficients for the trajectory of the arm from
+        %"HOME" to above object (same Z plane)
+        joint1TrajCoef = quintTraj(0,traveltime,0,0,last(1),k(1),0,0);
+        joint2TrajCoef = quintTraj(0,traveltime,0,0,last(2),k(2),0,0);
+        joint3TrajCoef = quintTraj(0,traveltime,0,0,last(3),k(3),0,0);
+        
+        pidPacket(1:3) = viaJts;
+        
+        pp.write(PID_SERV_ID, pidPacket);
+        pause(.004);
+        pidReturnPacket = pp.read(PID_SERV_ID);
+        
+        xPos = pos(1,:);
+        yPos = pos(2,:);
+        zPos = pos(3,:);
+        
+        set(quiv.handle, 'xdata', xPos(4), 'ydata', yPos(4), 'zdata', zPos(4), 'udata', Ftip(1), 'vdata', Ftip(2), 'wdata', Ftip(3));
+        
+        set(P.handle,'xdata', xPos, 'ydata', yPos, 'zdata', zPos);
+        
+        drawnow();
+        
+        pause(.001);
     end
+end
 catch exception
     getReport(exception)
     disp('Exited on error, clean shutdown');
-end
-pp.shutdown()
+    end
+    pp.shutdown()
