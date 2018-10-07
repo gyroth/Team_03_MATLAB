@@ -1,4 +1,4 @@
-function [ Ftip ] = moveNow(startPos,endPos,pp,packet)
+function [ Ftip ] = moveNow(startPos,endPos,pp,packet, quiv,p)
 %moveNow Moves the robot from the starting position to the ending position
 %using trajectory generation. All numerical entries are in ticks
     PID_SERV_ID = 37;
@@ -20,7 +20,9 @@ function [ Ftip ] = moveNow(startPos,endPos,pp,packet)
     
     moveStart = clock;
     
-while(~reachedSetpoint(pos(:,4),endPos))
+    Ftip = 0;
+    
+while(~reachedSetpoint(pos(:,4),endPos)&&(abs(etime(clock,moveStart))<4))
     %ticks, ticks/s, ADC bits
     returnPacket = getStatus(pp, packet);
     
@@ -39,6 +41,17 @@ while(~reachedSetpoint(pos(:,4),endPos))
     %Answers where is the tip right now
     pos= calcJointPos(currentAngle);
     
+    xPos = pos(1,:);
+    yPos = pos(2,:);
+    zPos = pos(3,:);
+    
+    xTip = xPos(4);
+    yTip = yPos(4);
+    zTip = zPos(4);
+    
+    set(p.handle,'xdata', xPos,'ydata',yPos,'zdata', zPos);
+    set(quiv.handle,'xdata', xTip,'ydata',yTip,'zdata', zTip,'udata', Ftip(1,1), 'vdata', Ftip(2,1), 'wdata', Ftip(3,1));
+    
     %joint 1 trajectory points
     J1 = quintPoint(etime(clock,moveStart), joint1TrajCoef(1,1), joint1TrajCoef(2,1), joint1TrajCoef(3,1), joint1TrajCoef(4,1), joint1TrajCoef(5,1), joint1TrajCoef(6,1));
     %joint 2 trajectory points
@@ -47,8 +60,9 @@ while(~reachedSetpoint(pos(:,4),endPos))
     J3 = quintPoint(etime(clock,moveStart), joint3TrajCoef(1,1), joint3TrajCoef(2,1), joint3TrajCoef(3,1), joint3TrajCoef(4,1), joint3TrajCoef(5,1), joint3TrajCoef(6,1));
     
     movehere = [J1,J2,J3];
-    ang = movehere*90/1024;
+   
     pidPacket(1:3) = movehere;
+    
     
     pp.write(PID_SERV_ID, pidPacket);
 end
