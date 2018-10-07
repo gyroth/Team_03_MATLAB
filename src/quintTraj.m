@@ -13,7 +13,7 @@ a_i = inv([1,      t_0,        power(t_0,2),       power(t_0,3),    power(t_0,4)
     
            0,      1,          2*t_f,              3*power(t_f,2),  4*power(t_f,3), 5*power(t_f,4);
            
-           0,      0,          2,                   6*t_f,          12*power(t_f,2), 20*power(t_f,3);])* [q_0; v_0; a_0; q_f; v_f; a_f] ;
+           0,      0,          2,                   6*t_f,          12*power(t_f,2), 20*power(t_f,3);])* [q_0; v_0; a_0; q_f; v_f; a_f];
 
 end
 

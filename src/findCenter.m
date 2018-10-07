@@ -8,14 +8,14 @@ imgfilt = imfilter(img,h);
 blurred = imfilter(imgfilt,h);
 
 % %segment image
-% 
+%
 % [segImg,~] = segmentImage(blurred);
 % imshow(segImg);
-% 
+%
 % for a = 1:3
 % segImg(:,:,a) = blurred(:,:,a) | segImg(:,:,a);
 % end
-% 
+%
 % imshow(segImg);
 
 if color == 'yellow'
@@ -55,15 +55,15 @@ end
 if(idx~=0)
     centroid = cat(1, c(idx).Centroid);
     
-    imshow(img);  
-    %disp(color);
+    subplot(2,3,3);
+    imshow(img);
+    
     present = 1;
 else
     present = 0;
     centroid = [0,0];
-    %X = sprintf('NO %s', color);
-    %disp(X);
 end
+
 returnVal = {centroid, present, color};
 end
 

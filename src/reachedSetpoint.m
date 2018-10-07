@@ -5,11 +5,12 @@ function atSetpoint = reachedSetpoint(currentPos, desJ)
     %convert back to angles   
     desJ = desJ * 90/1024;
     
-    desPos = calcJointPos(desJ);
-    desPos(2,4) = -desPos(2,4);
+    desPos = calcJointPos(desJ)
+    currentPos
     
-    close = abs(currentPos-desPos(:,4))< [5;5;5];
+    close = abs(currentPos-desPos(:,4))< [2;2;2];
     if(close == [1;1;1])
         atSetpoint = true;
     end
+    atSetpoint
 end
