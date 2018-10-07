@@ -104,6 +104,11 @@ try
     
     desP = zeros(3,1);
     
+    %Ball Height(mm)
+    bh = 30;
+    %Camera Height(mm)
+    ch = 290;
+    
     %initialize the home position when locating centroids of object
     home = [190;0;30];
     
@@ -195,12 +200,13 @@ try
                 
                 % Separates the targeted output to get the location
                 objectLoc = objectInfo(1:3);
+                objectLoc{1} = objectLoc{1}+25- (bh*(objectLoc{1}+30)/ch)
                 
-                desLoc = [objectLoc{1}+175; -objectLoc{2}*.81; objectLoc{3}];
+                desLoc = [objectLoc{1}+175; -objectLoc{2}*.88; objectLoc{3}]
                 %location above object. 175 is added to X to put object location
                 %in terms of robot task space. - is added to flip Y to
                 %correct side of robot task space and *.81 is to scale the mn2xy to the correct distance.
-                desZLoc = [objectLoc{1}+175;-objectLoc{2}*.81; home(3)];
+                desZLoc = [objectLoc{1}+175;-objectLoc{2}*.88; home(3)];
                 
                 % Waypoint to above object in task space in millimeters
                 
@@ -250,17 +256,17 @@ try
                 %   vertical trajectory to the object
                 %checks current tip position and desired joint angles
                 
+                currentPlace = getStatus(pp, packet);
+                currentPos = processStatus(currentPlace);
+                
                 %desJAng,startPos,endPos,pp,packet
-                Ftip = moveNow(aboveObjPos,fViaJts,pp,packet);
+                Ftip = moveNow(currentPos*1024/90,fViaJts,pp,packet);
                 
                 %ticks, ticks/s, ADC bits
                 returnPacket = getStatus(pp, packet);
                 
                 %Joint angles(deg)
-                currentAngle = processStatus(returnPacket);
-                
-                %Answers where is the tip right now
-                objPos= calcJointPos(currentAngle);
+                currentAngleObj = processStatus(returnPacket);
                 
                 pause(.5);
                 %CLOSE THE GRIPPER
@@ -269,6 +275,7 @@ try
                 gripper(pp,gripperPacket)
                 
                 pause(.5);
+                state = 7;
             case 7 %"weigh object"
                 %   measure force at tip and determine if heavy or light
                 
@@ -276,7 +283,7 @@ try
                 %checks current tip position and desired joint angles
                 
                 %desJointAng,startPos,endPos,pp,packet
-                Ftip = moveNow(objPos,ticksHome,pp,packet);
+                Ftip = moveNow(currentAngleObj*1024/90,ticksHome,pp,packet);
                 
                 %ticks, ticks/s, force measure
                 returnPacket = getStatus(pp,packet);
@@ -286,13 +293,20 @@ try
                 %current joint torques (Nmm)
                 appTorque = appliedTorque(currentTor);
                 
-                Ftip = statics3001(appTorque);
+                Ftip = statics3001(currentAngle',appTorque')
                 
                 weigh = isHeavy(Ftip);
-                %case "heavy"
+                
+                if(weigh)
+                    state = 8;
+                else
+                    state = 9;
+                end
+                
+                case 8 %"heavy"
                 %   move the object to color specific point far from us outside camera bounds
                 
-                %case "light"
+                case 9 %"light"
                 %   move the object to color specific point close to us outside camera bounds
                 
                 %% Picture Processing and Object Location

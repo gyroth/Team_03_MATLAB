@@ -52,13 +52,19 @@ for i = 1:len
         
     end
 end
+
+
 if(idx~=0)
     centroid = cat(1, c(idx).Centroid);
-    
+    if(centroid(1)>30 && centroid(1)<560)
     subplot(2,3,3);
     imshow(img);
     
     present = 1;
+    else
+        present = 0;
+        centroid = [0,0];
+    end
 else
     present = 0;
     centroid = [0,0];

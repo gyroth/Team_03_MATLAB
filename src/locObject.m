@@ -7,17 +7,17 @@ function objectPos = locObject(img)
 xyPos = zeros(1,3);
 
 yCen = findCenter("yellow",img);
-yLoc = yCen{1};
+yLoc = yCen{1}
 bCen = findCenter("blue",img);
 bLoc = bCen{1};
 gCen = findCenter("green",img);
 gLoc = gCen{1};
 
-if(yCen{2})
-    xyPos = {10*mn2xy(yLoc(1), yLoc(2)),yCen{3}};
+if(gCen{2})
+    xyPos = {10*mn2xy(gLoc(1), gLoc(2)),gCen{3}};
     subplot(2,3,6)
     
-    plot(yLoc(1),yLoc(2),'r*')
+    plot(gLoc(1),gLoc(2),'g*')
     xlim([0,480]);
     ylim([0,640]);
 else
@@ -29,11 +29,11 @@ else
         xlim([0,480]);
         ylim([0,640]);
     else
-        if(gCen{2})
-            xyPos = {10*mn2xy(gLoc(1), gLoc(2)),gCen{3}};
+        if(yCen{2})
+            xyPos = {10*mn2xy(yLoc(1), yLoc(2)),gCen{3}};
             subplot(2,3,6)
             
-            plot(gLoc(1), gLoc(2),'g*')
+            plot(yLoc(1), yLoc(2),'y*')
             xlim([0,480]);
             ylim([0,640]);
         end
@@ -41,6 +41,6 @@ else
 end
 xyLoc = xyPos{1};
 
-objectPos = {xyLoc(1); xyLoc(2); 0; xyPos{2}};
+objectPos = {xyLoc(1); xyLoc(2); -10; xyPos{2}};
 end
 
