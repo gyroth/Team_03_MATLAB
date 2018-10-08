@@ -19,7 +19,7 @@ blurred = imfilter(imgfilt,h);
 % imshow(segImg);
 
 if color == 'yellow'
-    mask = yMask3(blurred);
+    mask = yMask4(blurred);
 end
 
 if color == 'blue'
@@ -56,7 +56,7 @@ end
 
 if(idx~=0)
     centroid = cat(1, c(idx).Centroid);
-    if(centroid(1)>30 && centroid(1)<560)
+    if(centroid(1)>30 && centroid(1)<550)
     subplot(2,3,3);
     imshow(img);
     

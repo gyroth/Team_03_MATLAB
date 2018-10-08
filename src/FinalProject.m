@@ -110,14 +110,14 @@ try
     up = [190;0;130];
     %initializes the placement positions for the weights
     %BLUE
-    heavyB = [200;200;30];
-    lightB = [200;-200;30];
+    heavyY = [215;230;10];
+    lightY = [215;-230;10];
     %GREEN
-    heavyG = [175;200;30];
-    lightG = [175;-200;30];
+    heavyG = [165;230;10];
+    lightG = [165;-230;10];
     %YELLOW
-    heavyY = [150;200;30];
-    lightY = [150;-200;30];
+    heavyB = [115;230;10];
+    lightB = [115;-230;10];
     
     ticksHome = xyzToTicks(home);
     upTicks = xyzToTicks(up);
@@ -201,9 +201,9 @@ try
                 
                 % Separates the targeted output to get the location
                 objectLoc = objectInfo(1:3);
-                objectLoc{1} = objectLoc{1}+25- (bh*(objectLoc{1}+30)/ch)
+                objectLoc{1} = objectLoc{1}+20 - (bh*(objectLoc{1}+20)/ch);
                 
-                desLoc = [objectLoc{1}+175; -objectLoc{2}*.88; objectLoc{3}]
+                desLoc = [objectLoc{1}+175; -objectLoc{2}*.88; objectLoc{3}];
                 
                 %location above object. 175 is added to X to put object location
                 %in terms of robot task space. - is added to flip Y to
@@ -221,6 +221,7 @@ try
             case 3 % What is the Color
                 %   gets the color
                 objectColor = objectInfo(4);
+                
                 if(objectColor{1} == "none")
                     disp("none");
                     states = 1;
@@ -297,7 +298,7 @@ try
                 
                 %Move to home position
                 %desJointAng,startPos,endPos,pp,packet
-                Ftip = moveNow(currentAngleObj'*1024/90,ticksHome,pp,packet,quiv,P);
+                Ftip = moveNow(currentAngleObj'*1024/90,upTicks,pp,packet,quiv,P);
                 
                 pause(.5);
                 
@@ -320,6 +321,13 @@ try
                 end
                 
             case 8 %"heavy"
+                %ticks, ticks/s, force measure
+                returnPacket = getStatus(pp,packet);
+                
+                %Joint angles(deg)
+                currentAngleWeigh = processStatus(returnPacket);
+                %Joint angles (ticks)
+                currentAngleWeigh = currentAngleWeigh'*1024/90;
                 %   move the object to color specific point far from us outside camera bounds
                 if objectColor{1} == "blue"
                     color = 1;
@@ -331,17 +339,26 @@ try
                 
                 switch color
                     case 1
-                        Ftip = moveNow(ticksHome,xyzToTicks(heavyB),pp,packet,quiv,P);
+                        Ftip = moveNow(currentAngleWeigh,xyzToTicks(heavyB),pp,packet,quiv,P);
                     case 2
-                        Ftip = moveNow(ticksHome,xyzToTicks(heavyG),pp,packet,quiv,P);
+                        Ftip = moveNow(currentAngleWeigh,xyzToTicks(heavyG),pp,packet,quiv,P);
                     case 3
-                        Ftip = moveNow(ticksHome,xyzToTicks(heavyY),pp,packet,quiv,P);
+                        Ftip = moveNow(currentAngleWeigh,xyzToTicks(heavyY),pp,packet,quiv,P);
                 end
+                pause(1);
                 gripperPacket(1) = 0;
                 gripper(pp,gripperPacket);
-                pause(0.5);
+                
                 states = 1;
             case 9 %"light"
+                %ticks, ticks/s, force measure
+                returnPacket = getStatus(pp,packet);
+                
+                %Joint angles(deg)
+                currentAngleWeigh = processStatus(returnPacket);
+                %Joint angles (ticks)
+                currentAngleWeigh = currentAngleWeigh'*1024/90;
+                
                 %   move the object to color specific point close to us outside camera bounds
                 if objectColor{1} == "blue"
                     color = 1;
@@ -353,15 +370,16 @@ try
                 
                 switch color
                     case 1
-                        Ftip = moveNow(ticksHome,xyzToTicks(lightB),pp,packet,quiv,P);
+                        Ftip = moveNow(currentAngleWeigh,xyzToTicks(lightB),pp,packet,quiv,P);
                     case 2
-                        Ftip = moveNow(ticksHome,xyzToTicks(lightG),pp,packet,quiv,P);
+                        Ftip = moveNow(currentAngleWeigh,xyzToTicks(lightG),pp,packet,quiv,P);
                     case 3
-                        Ftip = moveNow(ticksHome,xyzToTicks(lightY),pp,packet,quiv,P);
+                        Ftip = moveNow(currentAngleWeigh,xyzToTicks(lightY),pp,packet,quiv,P);
                 end
+                pause(1.5);
                 gripperPacket(1) = 0;
                 gripper(pp,gripperPacket);
-                pause(0.5);
+                
                 states = 1;
         end
     end
