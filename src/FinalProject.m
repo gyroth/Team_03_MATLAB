@@ -110,14 +110,14 @@ try
     up = [190;0;130];
     %initializes the placement positions for the weights
     %BLUE
-    heavyY = [215;230;10];
-    lightY = [215;-230;10];
+    heavyY = [165;225;10];
+    lightY = [165;-225;10];
     %GREEN
-    heavyG = [165;230;10];
-    lightG = [165;-230;10];
+    heavyG = [115;225;10];
+    lightG = [115;-225;10];
     %YELLOW
-    heavyB = [115;230;10];
-    lightB = [115;-230;10];
+    heavyB = [65;225;10];
+    lightB = [65;-225;10];
     
     ticksHome = xyzToTicks(home);
     upTicks = xyzToTicks(up);
@@ -286,7 +286,7 @@ try
                 %CLOSE THE GRIPPER
                 
                 gripperPacket(1) = 1;
-                gripper(pp,gripperPacket)
+                gripper(pp,gripperPacket);
                 
                 pause(.5);
                 states = 7;

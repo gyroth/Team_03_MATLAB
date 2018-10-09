@@ -2,7 +2,7 @@ function [ Ftip ] = moveNow(startPos,endPos,pp,packet, quiv,p)
 %moveNow Moves the robot from the starting position to the ending position
 %using trajectory generation. All numerical entries are in ticks
     PID_SERV_ID = 37;
-    traveltime = 5;
+    traveltime = 6;
 %ticks, ticks/s, ADC bits
     returnPacket = getStatus(pp, packet);
     
@@ -22,7 +22,7 @@ function [ Ftip ] = moveNow(startPos,endPos,pp,packet, quiv,p)
     
     Ftip = 0;
     
-while(~reachedSetpoint(pos(:,4),endPos)&&(abs(etime(clock,moveStart))<4))
+while(~reachedSetpoint(pos(:,4),endPos)&&(abs(etime(clock,moveStart))<traveltime))
     %ticks, ticks/s, ADC bits
     returnPacket = getStatus(pp, packet);
     
