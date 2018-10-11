@@ -1,6 +1,6 @@
 function [ position ] = gripper( pp,packet)
-%gripper Summary of this function goes here
-%   Detailed explanation goes here
+%Controls the gripper by sending open or close messages to the NUCLEO
+%firmware
 GRIPPER_SERVER = 2;
 pp.write(GRIPPER_SERVER, packet);
 pause(.004);

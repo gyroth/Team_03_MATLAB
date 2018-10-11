@@ -1,7 +1,6 @@
 function [ object ] = stillObjects(img)
 %stillObjects Checks to see if there are still relevant objects in the task
 % space
-%   Detailed explanation goes here
 
 yCen = findCenter("yellow",img);
 isY = yCen{2};

@@ -1,5 +1,5 @@
 function [ Z ] = createXZStickPlot( xPos, zPos )
-%UNTITLED4 Create a Stick plot of the arm
+% Create a Stick plot of the arm
 %   Create a stick plot of the robot arm in the xz plane
 Z.handle = plot(xPos, zPos, 'DisplayName','Robot Links','MarkerFaceColor',[1 0 0],...
         'MarkerEdgeColor',[0 0 0],...

@@ -13,6 +13,7 @@ bLoc = bCen{1};
 gCen = findCenter("green",img);
 gLoc = gCen{1};
 
+%Gets task space position and plots location of centroid
 if(yCen{2})
     xyPos = {10*mn2xy(yLoc(1), yLoc(2)),yCen{3}};
     subplot(2,3,6)

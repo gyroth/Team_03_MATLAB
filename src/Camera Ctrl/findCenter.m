@@ -1,5 +1,5 @@
 function [returnVal] = findCenter(color,img)
-%findCenter Finds the center of the largest given spherical shape in mn locato
+%findCenter Finds the center of the largest given spherical shape in img
 
 h = fspecial('average');
 
@@ -7,19 +7,9 @@ h = fspecial('average');
 imgfilt = imfilter(img,h);
 blurred = imfilter(imgfilt,h);
 
-% %segment image
-%
-% [segImg,~] = segmentImage(blurred);
-% imshow(segImg);
-%
-% for a = 1:3
-% segImg(:,:,a) = blurred(:,:,a) | segImg(:,:,a);
-% end
-%
-% imshow(segImg);
-
+%Masks for the given color
 if color == 'yellow'
-    mask = yMask4(blurred);
+    mask = yMask3(blurred);
 end
 
 if color == 'blue'
@@ -30,11 +20,13 @@ if color == 'green'
     mask = gMask3(blurred);
 end
 
+%Removes static noise
 noDots = medfilt2(mask);
 actuallyNoDots = medfilt2(noDots);
 seriouslyNoDots = medfilt2(actuallyNoDots);
 imgfilt2 = imfilter(seriouslyNoDots,h);
 
+%Gets all of the centroids
 c = regionprops(imgfilt2, 'centroid', 'MajorAxisLength','MinorAxisLength');
 largest =  0;
 idx = 0;
@@ -53,7 +45,7 @@ for i = 1:len
     end
 end
 
-
+%Find centroid and records its position
 if(idx~=0)
     centroid = cat(1, c(idx).Centroid);
     if(centroid(1)>30 && centroid(1)<550)

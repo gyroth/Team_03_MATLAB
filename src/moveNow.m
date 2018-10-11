@@ -22,7 +22,7 @@ function [ Ftip ] = moveNow(startPos,endPos,pp,packet, quiv,p)
     
     Ftip = 0;
     
-while(~reachedSetpoint(pos(:,4),endPos)&&(abs(etime(clock,moveStart))<traveltime))
+while(~reachedSetpoint(pos(:,4),endPos)&&(abs(etime(clock,moveStart))<traveltime+1))
     %ticks, ticks/s, ADC bits
     returnPacket = getStatus(pp, packet);
     
@@ -49,6 +49,8 @@ while(~reachedSetpoint(pos(:,4),endPos)&&(abs(etime(clock,moveStart))<traveltime
     yTip = yPos(4);
     zTip = zPos(4);
     
+    %Updates the stickplot with the new position and force vector of the
+    %robot
     set(p.handle,'xdata', xPos,'ydata',yPos,'zdata', zPos);
     set(quiv.handle,'xdata', xTip,'ydata',yTip,'zdata', zTip,'udata', Ftip(1,1), 'vdata', Ftip(2,1), 'wdata', Ftip(3,1));
     

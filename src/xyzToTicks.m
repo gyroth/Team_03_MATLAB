@@ -1,6 +1,5 @@
 function [ viaJts ] = xyzToTicks( xyz )
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+% Converts xyz task space position to encoder ticks
 
                 viaJtsAngles = zeros(size(xyz));
                 
